@@ -43,6 +43,14 @@ func (sig SignatureEd25519) Bytes() []byte {
 	return wire.BinaryBytes(struct{ Signature }{sig})
 }
 
+func (sig SignatureEd25519) MarshalJSON() ([]byte, error) {
+	return marshalJSON(sig)
+}
+
+func (sig *SignatureEd25519) UnmarshalJSON(data []byte) error {
+	return unmarshalJSON(data, sig)
+}
+
 func (sig SignatureEd25519) IsZero() bool { return len(sig) == 0 }
 
 func (sig SignatureEd25519) String() string { return fmt.Sprintf("/%X.../", Fingerprint(sig[:])) }
@@ -74,4 +82,12 @@ func (sig SignatureSecp256k1) Equals(other Signature) bool {
 	} else {
 		return false
 	}
+}
+
+func (sig SignatureSecp256k1) MarshalJSON() ([]byte, error) {
+	return marshalJSON(sig)
+}
+
+func (sig *SignatureSecp256k1) UnmarshalJSON(data []byte) error {
+	return unmarshalJSON(data, sig)
 }

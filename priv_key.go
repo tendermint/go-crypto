@@ -103,6 +103,14 @@ func GenPrivKeyEd25519FromSecret(secret []byte) PrivKeyEd25519 {
 	return PrivKeyEd25519(*privKeyBytes)
 }
 
+func (privKey PrivKeyEd25519) MarshalJSON() ([]byte, error) {
+	return marshalJSON(privKey)
+}
+
+func (privKey *PrivKeyEd25519) UnmarshalJSON(data []byte) error {
+	return unmarshalJSON(data, privKey)
+}
+
 //-------------------------------------
 
 // Implements PrivKey
@@ -169,4 +177,12 @@ func GenPrivKeySecp256k1FromSecret(secret []byte) PrivKeySecp256k1 {
 	privKeyBytes := [32]byte{}
 	copy(privKeyBytes[:], priv.Serialize())
 	return PrivKeySecp256k1(privKeyBytes)
+}
+
+func (privKey PrivKeySecp256k1) MarshalJSON() ([]byte, error) {
+	return marshalJSON(privKey)
+}
+
+func (privKey *PrivKeySecp256k1) UnmarshalJSON(data []byte) error {
+	return unmarshalJSON(data, privKey)
 }
