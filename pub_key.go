@@ -99,6 +99,14 @@ func (pubKey PubKeyEd25519) Equals(other PubKey) bool {
 	}
 }
 
+func (privKey PubKeyEd25519) MarshalJSON() ([]byte, error) {
+	return marshalJSON(privKey)
+}
+
+func (privKey *PubKeyEd25519) UnmarshalJSON(data []byte) error {
+	return unmarshalJSON(data, privKey)
+}
+
 //-------------------------------------
 
 // Implements PubKey
@@ -153,4 +161,12 @@ func (pubKey PubKeySecp256k1) Equals(other PubKey) bool {
 	} else {
 		return false
 	}
+}
+
+func (privKey PubKeySecp256k1) MarshalJSON() ([]byte, error) {
+	return marshalJSON(privKey)
+}
+
+func (privKey *PubKeySecp256k1) UnmarshalJSON(data []byte) error {
+	return unmarshalJSON(data, privKey)
 }
