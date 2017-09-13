@@ -2,7 +2,9 @@ package cryptostore
 
 import (
 	"github.com/pkg/errors"
+
 	crypto "github.com/tendermint/go-crypto"
+	"github.com/tendermint/go-crypto/bcrypt"
 )
 
 var (
@@ -16,45 +18,43 @@ var (
 //
 // This should use a well-designed symetric encryption algorithm
 type Encoder interface {
-	Encrypt(key crypto.PrivKey, pass string) ([]byte, error)
-	Decrypt(data []byte, pass string) (crypto.PrivKey, error)
-}
-
-func secret(passphrase string) []byte {
-	// TODO: Sha256(Bcrypt(passphrase))
-	return crypto.Sha256([]byte(passphrase))
+	Encrypt(privKey crypto.PrivKey, passphrase string) (saltBytes []byte, encBytes []byte, err error)
+	Decrypt(saltBytes []byte, encBytes []byte, passphrase string) (privKey crypto.PrivKey, err error)
 }
 
 type secretbox struct{}
 
-func (e secretbox) Encrypt(key crypto.PrivKey, pass string) ([]byte, error) {
-	if pass == "" {
-		return key.Bytes(), nil
+func (e secretbox) Encrypt(privKey crypto.PrivKey, passphrase string) (saltBytes []byte, encBytes []byte, err error) {
+	saltBytes = crypto.CRandBytes(16)
+	key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "Couldn't generate bycrypt key from passphrase.")
 	}
-	s := secret(pass)
-	cipher := crypto.EncryptSymmetric(key.Bytes(), s)
-	return cipher, nil
+	key = crypto.Sha256(key) // Get 32 bytes
+	privKeyBytes := privKey.Bytes()
+	return saltBytes, crypto.EncryptSymmetric(privKeyBytes, key), nil
 }
 
-func (e secretbox) Decrypt(data []byte, pass string) (key crypto.PrivKey, err error) {
-	private := data
-	if pass != "" {
-		s := secret(pass)
-		private, err = crypto.DecryptSymmetric(data, s)
-		if err != nil {
-			return crypto.PrivKey{}, errors.Wrap(err, "Invalid Passphrase")
-		}
+func (e secretbox) Decrypt(saltBytes []byte, encBytes []byte, passphrase string) (privKey crypto.PrivKey, err error) {
+	key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
+	if err != nil {
+		return crypto.PrivKey{}, errors.Wrap(err, "Couldn't generate bycrypt key from passphrase.")
 	}
-	key, err = crypto.PrivKeyFromBytes(private)
-	return key, errors.Wrap(err, "Invalid Passphrase")
+	key = crypto.Sha256(key) // Get 32 bytes
+	privKeyBytes, err := crypto.DecryptSymmetric(encBytes, key)
+	if err != nil {
+		return crypto.PrivKey{}, errors.Wrap(err, "Invalid Passphrase")
+	}
+	privKey, err = crypto.PrivKeyFromBytes(privKeyBytes)
+	return privKey, errors.Wrap(err, "Invalid Passphrase")
 }
 
 type noop struct{}
 
-func (n noop) Encrypt(key crypto.PrivKey, pass string) ([]byte, error) {
-	return key.Bytes(), nil
+func (n noop) Encrypt(key crypto.PrivKey, passphrase string) (saltBytes []byte, encBytes []byte, err error) {
+	return []byte{}, key.Bytes(), nil
 }
 
-func (n noop) Decrypt(data []byte, pass string) (crypto.PrivKey, error) {
-	return crypto.PrivKeyFromBytes(data)
+func (n noop) Decrypt(saltBytes []byte, encBytes []byte, passphrase string) (privKey crypto.PrivKey, err error) {
+	return crypto.PrivKeyFromBytes(encBytes)
 }
