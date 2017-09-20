@@ -22,11 +22,11 @@ func (es encryptedStorage) Put(name, pass string, key crypto.PrivKey) error {
 }
 
 func (es encryptedStorage) Get(name, pass string) (crypto.PrivKey, keys.Info, error) {
-	salt, secret, info, err := es.store.Get(name)
+	saltBytes, encBytes, info, err := es.store.Get(name)
 	if err != nil {
 		return crypto.PrivKey{}, info, err
 	}
-	key, err := es.coder.Decrypt(salt, secret, pass)
+	key, err := es.coder.Decrypt(saltBytes, encBytes, pass)
 	return key, info, err
 }
 

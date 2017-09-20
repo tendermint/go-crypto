@@ -94,12 +94,8 @@ func TestSecretBoxNoPass(t *testing.T) {
 	}
 
 	// now let's make sure raw bytes also work...
-	// TODO: Our keys should use salts and hence they shouldn't be generated
-	// without a salt.
-	/*
-		b := key.Bytes()
-		pk, err := enc.Decrypt(b, "")
-		require.Nil(err, "%+v", err)
-		assert.Equal(key, pk)
-	*/
+	b := key.Bytes()
+	pk, err := enc.Decrypt(nil, b, "")
+	require.Nil(err, "%+v", err)
+	assert.Equal(key, pk)
 }

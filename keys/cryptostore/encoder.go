@@ -25,6 +25,10 @@ type Encoder interface {
 type secretbox struct{}
 
 func (e secretbox) Encrypt(privKey crypto.PrivKey, passphrase string) (saltBytes []byte, encBytes []byte, err error) {
+	if passphrase == "" {
+		return nil, privKey.Bytes(), nil
+	}
+
 	saltBytes = crypto.CRandBytes(16)
 	key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
 	if err != nil {
@@ -36,17 +40,23 @@ func (e secretbox) Encrypt(privKey crypto.PrivKey, passphrase string) (saltBytes
 }
 
 func (e secretbox) Decrypt(saltBytes []byte, encBytes []byte, passphrase string) (privKey crypto.PrivKey, err error) {
-	key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
-	if err != nil {
-		return crypto.PrivKey{}, errors.Wrap(err, "Couldn't generate bycrypt key from passphrase.")
-	}
-	key = crypto.Sha256(key) // Get 32 bytes
-	privKeyBytes, err := crypto.DecryptSymmetric(encBytes, key)
-	if err != nil {
-		return crypto.PrivKey{}, errors.Wrap(err, "Invalid Passphrase")
+	privKeyBytes := encBytes
+	if passphrase != "" {
+		key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
+		if err != nil {
+			return crypto.PrivKey{}, errors.Wrap(err, "Couldn't generate bycrypt key from passphrase.")
+		}
+		key = crypto.Sha256(key) // Get 32 bytes
+		privKeyBytes, err = crypto.DecryptSymmetric(encBytes, key)
+		if err != nil {
+			return crypto.PrivKey{}, errors.Wrap(err, "Invalid Passphrase")
+		}
 	}
 	privKey, err = crypto.PrivKeyFromBytes(privKeyBytes)
-	return privKey, errors.Wrap(err, "Invalid Passphrase")
+	if err != nil {
+		return crypto.PrivKey{}, errors.Wrap(err, "Couldn't get privKey from bytes")
+	}
+	return privKey, nil
 }
 
 type noop struct{}
