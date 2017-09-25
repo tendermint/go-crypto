@@ -30,7 +30,7 @@ func (e secretbox) Encrypt(privKey crypto.PrivKey, passphrase string) (saltBytes
 	}
 
 	saltBytes = crypto.CRandBytes(16)
-	key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
+	key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2017)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Couldn't generate bycrypt key from passphrase.")
 	}
@@ -44,7 +44,7 @@ func (e secretbox) Decrypt(saltBytes []byte, encBytes []byte, passphrase string)
 	if passphrase != "" {
 		key, err := bcrypt.GenerateFromPassword(saltBytes, []byte(passphrase), 12) // TODO parameterize.  12 is good today (2016)
 		if err != nil {
-			return crypto.PrivKey{}, errors.Wrap(err, "Couldn't generate bycrypt key from passphrase.")
+			return crypto.PrivKey{}, errors.Wrap(err, "Invalid Passphrase")
 		}
 		key = crypto.Sha256(key) // Get 32 bytes
 		privKeyBytes, err = crypto.DecryptSymmetric(encBytes, key)

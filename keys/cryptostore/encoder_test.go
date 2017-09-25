@@ -28,12 +28,12 @@ func TestNoopEncoder(t *testing.T) {
 	assert.NotEqual(b, b2)
 
 	// note the decode with a different password works - not secure!
-	pk, err := noop.Decrypt([]byte{}, b, "decode")
+	pk, err := noop.Decrypt(nil, b, "decode")
 	require.Nil(err)
 	require.NotNil(pk)
 	assert.Equal(key, pk)
 
-	pk2, err := noop.Decrypt([]byte{}, b2, "kggugougp")
+	pk2, err := noop.Decrypt(nil, b2, "kggugougp")
 	require.Nil(err)
 	require.NotNil(pk2)
 	assert.Equal(key2, pk2)
