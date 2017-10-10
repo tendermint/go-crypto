@@ -83,6 +83,8 @@ func (s FileStore) Get(name string) (salt []byte, key []byte, info keys.Info, er
 // Info for all keys located in this directory.
 func (s FileStore) List() (keys.Infos, error) {
 	dir, err := os.Open(s.keyDir)
+	defer dir.Close()
+
 	if err != nil {
 		return nil, errors.Wrap(err, "List Keys")
 	}
@@ -128,6 +130,8 @@ func (s FileStore) nameToPaths(name string) (pub, priv string) {
 
 func readInfo(path string) (info keys.Info, err error) {
 	f, err := os.Open(path)
+	defer f.Close()
+
 	if err != nil {
 		return info, errors.Wrap(err, "Reading data")
 	}
@@ -151,6 +155,8 @@ func readInfo(path string) (info keys.Info, err error) {
 
 func read(path string) (salt, key []byte, name string, err error) {
 	f, err := os.Open(path)
+	defer f.Close()
+
 	if err != nil {
 		return nil, nil, "", errors.Wrap(err, "Reading data")
 	}
@@ -165,7 +171,7 @@ func read(path string) (salt, key []byte, name string, err error) {
 	if block != BlockType {
 		return nil, nil, "", errors.Errorf("Unknown key type: %s", block)
 	}
-	if headers["kdf"] != "bycrypt" {
+	if headers["kdf"] != "bcrypt" {
 		return nil, nil, "", errors.Errorf("Unrecognized KDF type: %v", headers["kdf"])
 	}
 	if headers["salt"] == "" {
@@ -180,6 +186,8 @@ func read(path string) (salt, key []byte, name string, err error) {
 
 func writeInfo(path string, info keys.Info) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, keyPerm)
+	defer f.Close()
+
 	if err != nil {
 		return errors.Wrap(err, "Writing data")
 	}
@@ -192,13 +200,15 @@ func writeInfo(path string, info keys.Info) error {
 
 func write(path, name string, salt, key []byte) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, keyPerm)
+	defer f.Close()
+
 	if err != nil {
 		return errors.Wrap(err, "Writing data")
 	}
 	defer f.Close()
 	headers := map[string]string{
 		"name": name,
-		"kdf":  "bycrypt",
+		"kdf":  "bcrypt",
 		"salt": fmt.Sprintf("%X", salt),
 	}
 	text := crypto.EncodeArmor(BlockType, headers, key)
