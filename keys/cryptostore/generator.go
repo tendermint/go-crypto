@@ -3,7 +3,7 @@ package cryptostore
 import (
 	"github.com/pkg/errors"
 	crypto "github.com/tendermint/go-crypto"
-	"github.com/tendermint/go-crypto/nano"
+	// 	"github.com/tendermint/go-crypto/nano"
 )
 
 var (
@@ -12,7 +12,7 @@ var (
 	// GenSecp256k1 produces Secp256k1 private keys
 	GenSecp256k1 Generator = GenFunc(genSecp256)
 	// GenLedgerEd25519 used Ed25519 keys stored on nano ledger s with cosmos app
-	GenLedgerEd25519 Generator = GenFunc(genLedgerEd25519)
+	// GenLedgerEd25519 Generator = GenFunc(genLedgerEd25519)
 )
 
 // Generator determines the type of private key the keystore creates
@@ -39,9 +39,9 @@ func genSecp256(secret []byte) (crypto.PrivKey, error) {
 
 // secret is completely ignored for the ledger...
 // just for interface compatibility
-func genLedgerEd25519(secret []byte) (crypto.PrivKey, error) {
+/*func genLedgerEd25519(secret []byte) (crypto.PrivKey, error) {
 	return nano.NewPrivKeyLedgerEd25519Ed25519()
-}
+}*/
 
 type genInvalidByte struct {
 	typ byte
@@ -67,8 +67,8 @@ func getGenerator(algo string) Generator {
 		return GenEd25519
 	case crypto.NameSecp256k1:
 		return GenSecp256k1
-	case nano.NameLedgerEd25519:
-		return GenLedgerEd25519
+		//	case nano.NameLedgerEd25519:
+		//		return GenLedgerEd25519
 	default:
 		return genInvalidAlgo{algo}
 	}
@@ -80,8 +80,8 @@ func getGeneratorByType(typ byte) Generator {
 		return GenEd25519
 	case crypto.TypeSecp256k1:
 		return GenSecp256k1
-	case nano.TypeLedgerEd25519:
-		return GenLedgerEd25519
+		//	case nano.TypeLedgerEd25519:
+		//		return GenLedgerEd25519
 	default:
 		return genInvalidByte{typ}
 	}
