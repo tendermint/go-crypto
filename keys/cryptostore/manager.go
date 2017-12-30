@@ -35,11 +35,11 @@ var _ keys.Manager = Manager{}
 //
 // NOTE: algo must be a supported go-crypto algorithm: ed25519, secp256k1
 // TODO: use a `type TypeKeyAlgo string` (?)
-func (m Manager) Create(name, passphrase, algo string) (keys.Info, string, error) {
+func (m Manager) Create(name, passphrase, algo string) (keys.PublicInfo, string, error) {
 
 	gen, err := getGeneratorByName(algo)
 	if err != nil {
-		return keys.Info{}, "", err
+		return keys.PublicInfo{}, "", err
 	}
 
 	// NOTE: secret is SHA256 hashed by secp256k1 and ed25519.
@@ -48,12 +48,12 @@ func (m Manager) Create(name, passphrase, algo string) (keys.Info, string, error
 	secret := crypto.CRandBytes(16)
 	key, err := gen.Generate(secret)
 	if err != nil {
-		return keys.Info{}, "", err
+		return keys.PublicInfo{}, "", err
 	}
 
 	err = m.store.Put(name, passphrase, key)
 	if err != nil {
-		return keys.Info{}, "", err
+		return keys.PublicInfo{}, "", err
 	}
 
 	// we append the type byte to the serialized secret to help with recovery
@@ -73,10 +73,10 @@ func (m Manager) Create(name, passphrase, algo string) (keys.Info, string, error
 // If the seed phrase is valid, it will create the private key and store
 // it under name, protected by passphrase.
 // TODO: should take an algo instead of getting the type from the seedphrase ...
-func (m Manager) Recover(name, passphrase, seedphrase string) (keys.Info, error) {
+func (m Manager) Recover(name, passphrase, seedphrase string) (keys.PublicInfo, error) {
 	privKey, err := SeedToPrivKey(m.codec, seedphrase)
 	if err != nil {
-		return keys.Info{}, err
+		return keys.PublicInfo{}, err
 	}
 
 	// generated key from seed. now encrypt and store.
@@ -110,16 +110,16 @@ func SeedToPrivKey(codec keys.Codec, seedphrase string) (crypto.PrivKey, error) 
 }
 
 // List loads the keys from the storage and enforces alphabetical order
-func (m Manager) List() (keys.Infos, error) {
+func (m Manager) List() (keys.PublicInfos, error) {
 	res, err := m.store.List()
 	res.Sort()
 	return res, err
 }
 
 // Get returns the public information about one key
-func (m Manager) Get(name string) (keys.Info, error) {
-	_, info, err := m.store.store.Get(name)
-	return info, err
+func (m Manager) Get(name string) (keys.PublicInfo, error) {
+	info, err := m.store.store.Get(name)
+	return info.Public, err
 }
 
 // Sign will modify the Signable in order to attach a valid signature with

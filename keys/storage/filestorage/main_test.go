@@ -23,13 +23,19 @@ func TestBasicCRUD(t *testing.T) {
 	name := "bar"
 	key := []byte("secret-key-here")
 	pubkey := crypto.GenPrivKeyEd25519().PubKey()
-	info := keys.Info{
+	pubInfo := keys.PublicInfo{
 		Name:   name,
 		PubKey: pubkey.Wrap(),
 	}
+	keyInfo := keys.KeyInfo{
+		Public: pubInfo,
+		Private: keys.PrivateInfo{
+			CipherText: key,
+		},
+	}
 
 	// No data: Get and Delete return nothing
-	_, _, err = store.Get(name)
+	_, err = store.Get(name)
 	assert.NotNil(err)
 	err = store.Delete(name)
 	assert.NotNil(err)
@@ -39,26 +45,26 @@ func TestBasicCRUD(t *testing.T) {
 	assert.Empty(l)
 
 	// Putting the key in the  store must work
-	err = store.Put(name, key, info)
+	err = store.Put(name, keyInfo)
 	assert.Nil(err)
 	// But a second time is a failure
-	err = store.Put(name, key, info)
+	err = store.Put(name, keyInfo)
 	assert.NotNil(err)
 
 	// Now, we can get and list properly
-	k, i, err := store.Get(name)
+	i, err := store.Get(name)
 	require.Nil(err, "%+v", err)
-	assert.Equal(key, k)
-	assert.Equal(info.Name, i.Name)
-	assert.Equal(info.PubKey, i.PubKey)
-	assert.NotEmpty(i.Address)
+	assert.Equal(key, i.Private.CipherText)
+	assert.Equal(pubInfo.Name, i.Public.Name)
+	assert.Equal(pubInfo.PubKey, i.Public.PubKey)
+	assert.NotEmpty(i.Public.Address)
 	l, err = store.List()
 	require.Nil(err, "%+v", err)
 	assert.Equal(1, len(l))
-	assert.Equal(i, l[0])
+	assert.Equal(i.Public, l[0])
 
 	// querying a non-existent key fails
-	_, _, err = store.Get("badname")
+	_, err = store.Get("badname")
 	assert.NotNil(err)
 
 	// We can only delete once
@@ -68,7 +74,7 @@ func TestBasicCRUD(t *testing.T) {
 	assert.NotNil(err)
 
 	// and then Get and List don't work
-	_, _, err = store.Get(name)
+	_, err = store.Get(name)
 	assert.NotNil(err)
 	// List returns empty list
 	l, err = store.List()

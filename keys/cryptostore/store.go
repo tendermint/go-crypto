@@ -13,27 +13,32 @@ type keyStore struct {
 
 // Put encrypts the key and stores it.
 func (ks keyStore) Put(name, pass string, key crypto.PrivKey) error {
-	secret, err := ks.cipher.Encrypt(key, pass)
+	cipherText, err := ks.cipher.Encrypt(key, pass)
 	if err != nil {
 		return err
 	}
 
-	ki := info(name, key.PubKey())
-	return ks.store.Put(name, secret, ki)
+	publicInfo := info(name, key.PubKey())
+	return ks.store.Put(name, keys.KeyInfo{
+		Public: publicInfo,
+		Private: keys.PrivateInfo{
+			CipherText: cipherText,
+		},
+	})
 }
 
 // Get fetches the encrypted key and decrypts it.
-func (ks keyStore) Get(name, pass string) (crypto.PrivKey, keys.Info, error) {
-	secret, info, err := ks.store.Get(name)
+func (ks keyStore) Get(name, pass string) (crypto.PrivKey, keys.PublicInfo, error) {
+	info, err := ks.store.Get(name)
 	if err != nil {
-		return crypto.PrivKey{}, info, err
+		return crypto.PrivKey{}, keys.PublicInfo{}, err
 	}
-	key, err := ks.cipher.Decrypt(secret, pass)
-	return key, info, err
+	key, err := ks.cipher.Decrypt(info.Private.CipherText, pass)
+	return key, info.Public, err
 }
 
 // List returns a list of keys in the store.
-func (ks keyStore) List() (keys.Infos, error) {
+func (ks keyStore) List() (keys.PublicInfos, error) {
 	return ks.store.List()
 }
 
@@ -43,9 +48,9 @@ func (ks keyStore) Delete(name string) error {
 	return ks.store.Delete(name)
 }
 
-// info returns the keys.Info for this key.
-func info(name string, pub crypto.PubKey) keys.Info {
-	return keys.Info{
+// info returns the keys.PublicInfo for this key.
+func info(name string, pub crypto.PubKey) keys.PublicInfo {
+	return keys.PublicInfo{
 		Name:    name,
 		Address: pub.Address(),
 		PubKey:  pub,

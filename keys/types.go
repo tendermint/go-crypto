@@ -19,34 +19,55 @@ type Codec interface {
 
 // Storage has many implementation, based on security and sharing requirements
 // like disk-backed, mem-backed, vault, db, etc.
+// It does not handle encryption directly.
 type Storage interface {
-	Put(name string, key []byte, info Info) error
-	Get(name string) (key []byte, info Info, err error)
-	List() (Infos, error)
+	Put(name string, key KeyInfo) error
+	Get(name string) (key KeyInfo, err error)
+	List() (PublicInfos, error)
 	Delete(name string) error
 }
 
-// Info is the public information about a key
-type Info struct {
+// KeyInfo is all the information about a key.
+type KeyInfo struct {
+	Public  PublicInfo
+	Private PrivateInfo
+}
+
+func (i KeyInfo) Format() KeyInfo {
+	return KeyInfo{
+		Public:  i.Public.Format(),
+		Private: i.Private,
+	}
+}
+
+// PrivateInfo is the information about the private key.
+// It includes the encrypted private key.
+type PrivateInfo struct {
+	CipherText []byte `json:"cipher_text"`
+	Salt       []byte `json:"salt"`
+}
+
+// PublicInfo is the public information about a key
+type PublicInfo struct {
 	Name    string        `json:"name"`
 	Address data.Bytes    `json:"address"`
 	PubKey  crypto.PubKey `json:"pubkey"`
 }
 
-func (i *Info) Format() Info {
+func (i *PublicInfo) Format() PublicInfo {
 	if !i.PubKey.Empty() {
 		i.Address = i.PubKey.Address()
 	}
 	return *i
 }
 
-// Infos is a wrapper to allows alphabetical sorting of the keys
-type Infos []Info
+// PublicInfos is a wrapper to allows alphabetical sorting of the keys
+type PublicInfos []PublicInfo
 
-func (k Infos) Len() int           { return len(k) }
-func (k Infos) Less(i, j int) bool { return k[i].Name < k[j].Name }
-func (k Infos) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }
-func (k Infos) Sort() {
+func (k PublicInfos) Len() int           { return len(k) }
+func (k PublicInfos) Less(i, j int) bool { return k[i].Name < k[j].Name }
+func (k PublicInfos) Swap(i, j int)      { k[i], k[j] = k[j], k[i] }
+func (k PublicInfos) Sort() {
 	if k != nil {
 		sort.Sort(k)
 	}
@@ -83,11 +104,11 @@ type Signer interface {
 type Manager interface {
 	Signer
 	// Create also returns a seed phrase for cold-storage
-	Create(name, passphrase, algo string) (Info, string, error)
+	Create(name, passphrase, algo string) (PublicInfo, string, error)
 	// Recover takes a seedphrase and loads in the private key
-	Recover(name, passphrase, seedphrase string) (Info, error)
-	List() (Infos, error)
-	Get(name string) (Info, error)
+	Recover(name, passphrase, seedphrase string) (PublicInfo, error)
+	List() (PublicInfos, error)
+	Get(name string) (PublicInfo, error)
 	Update(name, oldpass, newpass string) error
 	Delete(name, passphrase string) error
 }
