@@ -9,6 +9,14 @@ import (
 	data "github.com/tendermint/go-wire/data"
 )
 
+// Codec converts between mnemonic seed phrases and the underlying bytes
+type Codec interface {
+	BytesToWords([]byte) ([]string, error)
+	WordsToBytes([]string) ([]byte, error)
+}
+
+//-------------------------------------------------------------------------
+
 // Storage has many implementation, based on security and sharing requirements
 // like disk-backed, mem-backed, vault, db, etc.
 type Storage interface {

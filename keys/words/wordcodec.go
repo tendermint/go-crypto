@@ -1,4 +1,4 @@
-package keys
+package words
 
 import (
 	"math/big"
@@ -6,17 +6,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/tendermint/go-crypto/keys/wordlist"
+	"github.com/tendermint/go-crypto/keys"
+	"github.com/tendermint/go-crypto/keys/words/wordlist"
 )
 
 const BankSize = 2048
 
 // TODO: add error-checking codecs for invalid phrases
-
-type Codec interface {
-	BytesToWords([]byte) ([]string, error)
-	WordsToBytes([]string) ([]byte, error)
-}
 
 type WordCodec struct {
 	words []string
@@ -24,7 +20,7 @@ type WordCodec struct {
 	check ECC
 }
 
-var _ Codec = &WordCodec{}
+var _ keys.Codec = &WordCodec{}
 
 func NewCodec(words []string) (codec *WordCodec, err error) {
 	if len(words) != BankSize {

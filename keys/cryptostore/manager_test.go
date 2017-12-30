@@ -14,6 +14,7 @@ import (
 	"github.com/tendermint/go-crypto/keys"
 	"github.com/tendermint/go-crypto/keys/cryptostore"
 	"github.com/tendermint/go-crypto/keys/storage/memstorage"
+	"github.com/tendermint/go-crypto/keys/words"
 	// "github.com/tendermint/go-crypto/nano"
 )
 
@@ -25,7 +26,7 @@ func TestKeyManagement(t *testing.T) {
 	cstore := cryptostore.New(
 		cryptostore.SecretBox,
 		memstorage.New(),
-		keys.MustLoadCodec("english"),
+		words.MustLoadCodec("english"),
 	)
 
 	algo := crypto.NameEd25519
@@ -94,7 +95,7 @@ func TestSignVerify(t *testing.T) {
 	cstore := cryptostore.New(
 		cryptostore.SecretBox,
 		memstorage.New(),
-		keys.MustLoadCodec("english"),
+		words.MustLoadCodec("english"),
 	)
 	algo := crypto.NameSecp256k1
 
@@ -167,7 +168,7 @@ func _TestSignWithLedger(t *testing.T) {
 		cstore := cryptostore.New(
 			cryptostore.SecretBox,
 			memstorage.New(),
-			keys.MustLoadCodec("english"),
+			words.MustLoadCodec("english"),
 		)
 		n := "nano-s"
 		p := "hard2hack"
@@ -222,7 +223,7 @@ func TestImportUnencrypted(t *testing.T) {
 	cstore := cryptostore.New(
 		cryptostore.SecretBox,
 		memstorage.New(),
-		keys.MustLoadCodec("english"),
+		words.MustLoadCodec("english"),
 	)
 
 	key, err := cryptostore.GenEd25519.Generate(cmn.RandBytes(16))
@@ -250,7 +251,7 @@ func TestAdvancedKeyManagement(t *testing.T) {
 	cstore := cryptostore.New(
 		cryptostore.SecretBox,
 		memstorage.New(),
-		keys.MustLoadCodec("english"),
+		words.MustLoadCodec("english"),
 	)
 
 	algo := crypto.NameSecp256k1
@@ -294,7 +295,7 @@ func TestSeedPhrase(t *testing.T) {
 	cstore := cryptostore.New(
 		cryptostore.SecretBox,
 		memstorage.New(),
-		keys.MustLoadCodec("english"),
+		words.MustLoadCodec("english"),
 	)
 
 	algo := crypto.NameEd25519
@@ -327,7 +328,7 @@ func ExampleNew() {
 		cryptostore.SecretBox,
 		// Note: use filestorage.New(dir) for real data
 		memstorage.New(),
-		keys.MustLoadCodec("english"),
+		words.MustLoadCodec("english"),
 	)
 	ed := crypto.NameEd25519
 	sec := crypto.NameSecp256k1
