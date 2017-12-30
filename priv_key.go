@@ -11,6 +11,7 @@ import (
 	. "github.com/tendermint/tmlibs/common"
 )
 
+// PrivKeyFromBytes unmarshals the given privKeyBytes into a PrivKey.
 func PrivKeyFromBytes(privKeyBytes []byte) (privKey PrivKey, err error) {
 	err = wire.ReadBinaryBytes(privKeyBytes, &privKey)
 	if err == nil {
@@ -199,6 +200,7 @@ func (key PrivKeySecp256k1) Generate(index int) PrivKeySecp256k1 {
 func GenPrivKeySecp256k1() PrivKeySecp256k1 {
 	privKeyBytes := [32]byte{}
 	copy(privKeyBytes[:], CRandBytes(32))
+	// XXX I thought not all 32-bit strings were valid keys
 	priv, _ := secp256k1.PrivKeyFromBytes(secp256k1.S256(), privKeyBytes[:])
 	copy(privKeyBytes[:], priv.Serialize())
 	return PrivKeySecp256k1(privKeyBytes)

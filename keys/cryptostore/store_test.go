@@ -4,11 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
 	crypto "github.com/tendermint/go-crypto"
+	"github.com/tendermint/go-crypto/keys"
 	cmn "github.com/tendermint/tmlibs/common"
-
-	keys "github.com/tendermint/go-crypto/keys"
 )
 
 func TestSortKeys(t *testing.T) {
@@ -22,10 +20,10 @@ func TestSortKeys(t *testing.T) {
 
 	// alphabetical order is n3, n1, n2
 	n1, n2, n3 := "john", "mike", "alice"
-	infos := keys.Infos{
-		info(n1, gen()),
-		info(n2, gen()),
-		info(n3, gen()),
+	infos := keys.PublicInfos{
+		info(n1, gen().PubKey()),
+		info(n2, gen().PubKey()),
+		info(n3, gen().PubKey()),
 	}
 
 	// make sure they are initialized unsorted

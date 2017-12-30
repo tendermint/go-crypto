@@ -24,7 +24,6 @@ import:
   - ripemd160
 - package: github.com/pkg/errors
 - package: github.com/howeyc/crc16
-- package: github.com/ethanfrey/ledger
 testImport:
 - package: github.com/mndrix/btcutil
 - package: github.com/stretchr/testify
