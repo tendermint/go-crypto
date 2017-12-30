@@ -5,42 +5,46 @@ import (
 	keys "github.com/tendermint/go-crypto/keys"
 )
 
-// encryptedStorage needs passphrase to get private keys
-type encryptedStorage struct {
-	coder Encoder
-	store keys.Storage
+// keyStore is a keys.Storage that encrypts the keys.
+type keyStore struct {
+	cipher PrivKeyCipher
+	store  keys.Storage
 }
 
-func (es encryptedStorage) Put(name, pass string, key crypto.PrivKey) error {
-	secret, err := es.coder.Encrypt(key, pass)
+// Put encrypts the key and stores it.
+func (ks keyStore) Put(name, pass string, key crypto.PrivKey) error {
+	secret, err := ks.cipher.Encrypt(key, pass)
 	if err != nil {
 		return err
 	}
 
-	ki := info(name, key)
-	return es.store.Put(name, secret, ki)
+	ki := info(name, key.PubKey())
+	return ks.store.Put(name, secret, ki)
 }
 
-func (es encryptedStorage) Get(name, pass string) (crypto.PrivKey, keys.Info, error) {
-	secret, info, err := es.store.Get(name)
+// Get fetches the encrypted key and decrypts it.
+func (ks keyStore) Get(name, pass string) (crypto.PrivKey, keys.Info, error) {
+	secret, info, err := ks.store.Get(name)
 	if err != nil {
 		return crypto.PrivKey{}, info, err
 	}
-	key, err := es.coder.Decrypt(secret, pass)
+	key, err := ks.cipher.Decrypt(secret, pass)
 	return key, info, err
 }
 
-func (es encryptedStorage) List() (keys.Infos, error) {
-	return es.store.List()
+// List returns a list of keys in the store.
+func (ks keyStore) List() (keys.Infos, error) {
+	return ks.store.List()
 }
 
-func (es encryptedStorage) Delete(name string) error {
-	return es.store.Delete(name)
+// Delete deletes a key from the store.
+// XXX: Should this require a passphrase?
+func (ks keyStore) Delete(name string) error {
+	return ks.store.Delete(name)
 }
 
-// info hardcodes the encoding of keys
-func info(name string, key crypto.PrivKey) keys.Info {
-	pub := key.PubKey()
+// info returns the keys.Info for this key.
+func info(name string, pub crypto.PubKey) keys.Info {
 	return keys.Info{
 		Name:    name,
 		Address: pub.Address(),

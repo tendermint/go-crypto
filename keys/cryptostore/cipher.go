@@ -7,26 +7,28 @@ import (
 
 var (
 	// SecretBox uses the algorithm from NaCL to store secrets securely
-	SecretBox Encoder = secretbox{}
+	SecretBox PrivKeyCipher = secretbox{}
 	// Noop doesn't do any encryption, should only be used in test code
-	Noop Encoder = noop{}
+	Noop PrivKeyCipher = noop{}
 )
 
-// Encoder is used to encrypt any key with a passphrase for storage.
-//
-// This should use a well-designed symetric encryption algorithm
-type Encoder interface {
+// PrivKeyCipher is used to encrypt a PrivKey with a passphrase for storage.
+// The passphrase should be used to derive a symmetric key for encryption
+// using a secure key derivation function.
+type PrivKeyCipher interface {
 	Encrypt(key crypto.PrivKey, pass string) ([]byte, error)
 	Decrypt(data []byte, pass string) (crypto.PrivKey, error)
 }
 
+// TODO: Sha256(Bcrypt(passphrase))
 func secret(passphrase string) []byte {
-	// TODO: Sha256(Bcrypt(passphrase))
 	return crypto.Sha256([]byte(passphrase))
 }
 
 type secretbox struct{}
 
+// Encrypt implements PrivKeyCipher.
+// If pass is empty, it will return the unencrypted serialized private key.
 func (e secretbox) Encrypt(key crypto.PrivKey, pass string) ([]byte, error) {
 	if pass == "" {
 		return key.Bytes(), nil
@@ -36,6 +38,7 @@ func (e secretbox) Encrypt(key crypto.PrivKey, pass string) ([]byte, error) {
 	return cipher, nil
 }
 
+// Decrypt implements PrivKeyCipher.
 func (e secretbox) Decrypt(data []byte, pass string) (key crypto.PrivKey, err error) {
 	private := data
 	if pass != "" {
@@ -51,10 +54,12 @@ func (e secretbox) Decrypt(data []byte, pass string) (key crypto.PrivKey, err er
 
 type noop struct{}
 
+// Encrypt implements PrivKeyCipher.
 func (n noop) Encrypt(key crypto.PrivKey, pass string) ([]byte, error) {
 	return key.Bytes(), nil
 }
 
+// Decrypt implements PrivKeyCipher.
 func (n noop) Decrypt(data []byte, pass string) (crypto.PrivKey, error) {
 	return crypto.PrivKeyFromBytes(data)
 }

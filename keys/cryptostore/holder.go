@@ -10,15 +10,16 @@ import (
 // Manager combines encyption and storage implementation to provide
 // a full-featured key manager
 type Manager struct {
-	es    encryptedStorage
+	store keyStore
 	codec keys.Codec
 }
 
-func New(coder Encoder, store keys.Storage, codec keys.Codec) Manager {
+// New returns a new Manager.
+func New(cipher PrivKeyCipher, store keys.Storage, codec keys.Codec) Manager {
 	return Manager{
-		es: encryptedStorage{
-			coder: coder,
-			store: store,
+		store: keyStore{
+			cipher: cipher,
+			store:  store,
 		},
 		codec: codec,
 	}
@@ -28,74 +29,96 @@ func New(coder Encoder, store keys.Storage, codec keys.Codec) Manager {
 var _ keys.Signer = Manager{}
 var _ keys.Manager = Manager{}
 
-// Create adds a new key to the storage engine, returning error if
-// another key already stored under this name
+// Create generates a new key and persists it storage, encrypted using the passphrase.
+// It returns error if it fails to generate a key for the given algo type,
+// or if another key is already stored under the same name.
 //
-// algo must be a supported go-crypto algorithm: ed25519, secp256k1
-func (s Manager) Create(name, passphrase, algo string) (keys.Info, string, error) {
-	// 128-bits are the all the randomness we can make use of
-	secret := crypto.CRandBytes(16)
-	gen := getGenerator(algo)
+// NOTE: algo must be a supported go-crypto algorithm: ed25519, secp256k1
+// TODO: use a `type TypeKeyAlgo string` (?)
+func (m Manager) Create(name, passphrase, algo string) (keys.Info, string, error) {
 
+	gen, err := getGeneratorByName(algo)
+	if err != nil {
+		return keys.Info{}, "", err
+	}
+
+	// NOTE: secret is SHA256 hashed by secp256k1 and ed25519.
+	// 16 byte secret corresponds to 12 BIP39 words.
+	// XXX: Ledgers use 24 words now - should we ?
+	secret := crypto.CRandBytes(16)
 	key, err := gen.Generate(secret)
 	if err != nil {
 		return keys.Info{}, "", err
 	}
 
-	err = s.es.Put(name, passphrase, key)
+	err = m.store.Put(name, passphrase, key)
 	if err != nil {
 		return keys.Info{}, "", err
 	}
 
 	// we append the type byte to the serialized secret to help with recovery
 	// ie [secret] = [secret] + [type]
+	// XXX: this influences the words
+	// TODO: dont do this. instead, save the type info in the store!
 	typ := key.Bytes()[0]
 	secret = append(secret, typ)
 
-	seed, err := s.codec.BytesToWords(secret)
-	phrase := strings.Join(seed, " ")
-	return info(name, key), phrase, err
+	words, err := m.codec.BytesToWords(secret)
+	seedPhrase := strings.Join(words, " ")
+	return info(name, key.PubKey()), seedPhrase, err
 }
 
 // Recover takes a seed phrase and tries to recover the private key.
 //
 // If the seed phrase is valid, it will create the private key and store
 // it under name, protected by passphrase.
-//
-// Result similar to New(), except it doesn't return the seed again...
-func (s Manager) Recover(name, passphrase, seedphrase string) (keys.Info, error) {
-	words := strings.Split(strings.TrimSpace(seedphrase), " ")
-	secret, err := s.codec.WordsToBytes(words)
+// TODO: should take an algo instead of getting the type from the seedphrase ...
+func (m Manager) Recover(name, passphrase, seedphrase string) (keys.Info, error) {
+	privKey, err := SeedToPrivKey(m.codec, seedphrase)
 	if err != nil {
 		return keys.Info{}, err
+	}
+
+	// generated key from seed. now encrypt and store.
+	err = m.store.Put(name, passphrase, privKey)
+	return info(name, privKey.PubKey()), err
+}
+
+// SeedToPrivKey returns a private key corresponding to the give seedphrase.
+func SeedToPrivKey(codec keys.Codec, seedphrase string) (crypto.PrivKey, error) {
+	words := strings.Split(strings.TrimSpace(seedphrase), " ")
+	secret, err := codec.WordsToBytes(words)
+	if err != nil {
+		return crypto.PrivKey{}, err
 	}
 
 	// secret is comprised of the actual secret with the type appended
 	// ie [secret] = [secret] + [type]
+	// TODO: probably shouldnt do this
 	l := len(secret)
 	secret, typ := secret[:l-1], secret[l-1]
 
-	gen := getGeneratorByType(typ)
+	gen, err := getGeneratorByType(typ)
+	if err != nil {
+		return crypto.PrivKey{}, err
+	}
 	key, err := gen.Generate(secret)
 	if err != nil {
-		return keys.Info{}, err
+		return crypto.PrivKey{}, err
 	}
-
-	// d00d, it worked!  create the bugger....
-	err = s.es.Put(name, passphrase, key)
-	return info(name, key), err
+	return key, nil
 }
 
 // List loads the keys from the storage and enforces alphabetical order
-func (s Manager) List() (keys.Infos, error) {
-	res, err := s.es.List()
+func (m Manager) List() (keys.Infos, error) {
+	res, err := m.store.List()
 	res.Sort()
 	return res, err
 }
 
 // Get returns the public information about one key
-func (s Manager) Get(name string) (keys.Info, error) {
-	_, info, err := s.es.store.Get(name)
+func (m Manager) Get(name string) (keys.Info, error) {
+	_, info, err := m.store.store.Get(name)
 	return info, err
 }
 
@@ -103,8 +126,8 @@ func (s Manager) Get(name string) (keys.Info, error) {
 // this public key
 //
 // If no key for this name, or the passphrase doesn't match, returns an error
-func (s Manager) Sign(name, passphrase string, tx keys.Signable) error {
-	key, _, err := s.es.Get(name, passphrase)
+func (m Manager) Sign(name, passphrase string, tx keys.Signable) error {
+	key, _, err := m.store.Get(name, passphrase)
 	if err != nil {
 		return err
 	}
@@ -119,51 +142,53 @@ func (s Manager) Sign(name, passphrase string, tx keys.Signable) error {
 //
 // This is designed to copy from one device to another, or provide backups
 // during version updates.
-func (s Manager) Export(name, oldpass, transferpass string) ([]byte, error) {
-	key, _, err := s.es.Get(name, oldpass)
+func (m Manager) Export(name, oldpass, transferpass string) ([]byte, error) {
+	key, _, err := m.store.Get(name, oldpass)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := s.es.coder.Encrypt(key, transferpass)
+	res, err := m.store.cipher.Encrypt(key, transferpass)
 	return res, err
 }
 
 // Import accepts bytes generated by Export along with the same transferpass
 // If they are valid, it stores the password under the given name with the
 // new passphrase.
-func (s Manager) Import(name, newpass, transferpass string, data []byte) error {
-	key, err := s.es.coder.Decrypt(data, transferpass)
+func (m Manager) Import(name, newpass, transferpass string, data []byte) error {
+	key, err := m.store.cipher.Decrypt(data, transferpass)
 	if err != nil {
 		return err
 	}
 
-	return s.es.Put(name, newpass, key)
+	return m.store.Put(name, newpass, key)
 }
 
 // Delete removes key forever, but we must present the
 // proper passphrase before deleting it (for security)
-func (s Manager) Delete(name, passphrase string) error {
+func (m Manager) Delete(name, passphrase string) error {
 	// verify we have the proper password before deleting
-	_, _, err := s.es.Get(name, passphrase)
+	_, _, err := m.store.Get(name, passphrase)
 	if err != nil {
 		return err
 	}
-	return s.es.Delete(name)
+	return m.store.Delete(name)
 }
 
-// Update changes the passphrase with which a already stored key is encoded.
+// Update changes the passphrase with which an already stored key is encrypted.
 //
-// oldpass must be the current passphrase used for encoding, newpass will be
+// oldpass must be the current passphrase used for encrypting, newpass will be
 // the only valid passphrase from this time forward
-func (s Manager) Update(name, oldpass, newpass string) error {
-	key, _, err := s.es.Get(name, oldpass)
+// XXX: currently unsafe - if the process crashes it may lose the private key.
+func (m Manager) Update(name, oldpass, newpass string) error {
+	key, _, err := m.store.Get(name, oldpass)
 	if err != nil {
 		return err
 	}
 
 	// we must delete first, as Putting over an existing name returns an error
-	s.Delete(name, oldpass)
+	// XXX: if we crash we'll lose the key!
+	m.Delete(name, oldpass)
 
-	return s.es.Put(name, newpass, key)
+	return m.store.Put(name, newpass, key)
 }
