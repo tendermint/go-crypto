@@ -12,8 +12,8 @@ import (
 // Storage has many implementation, based on security and sharing requirements
 // like disk-backed, mem-backed, vault, db, etc.
 type Storage interface {
-	Put(name string, key []byte, info Info) error
-	Get(name string) (key []byte, info Info, err error)
+	Put(name string, salt, key []byte, info Info) error
+	Get(name string) (salt, key []byte, info Info, err error)
 	List() (Infos, error)
 	Delete(name string) error
 }
@@ -25,6 +25,7 @@ type Info struct {
 	PubKey  crypto.PubKey `json:"pubkey"`
 }
 
+// Format ensures that the address field is set.
 func (i *Info) Format() Info {
 	if !i.PubKey.Empty() {
 		i.Address = i.PubKey.Address()

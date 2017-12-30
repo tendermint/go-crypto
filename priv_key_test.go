@@ -58,6 +58,7 @@ func TestReadPrivKey(t *testing.T) {
 			assert.NoError(err, "%d", i)
 			assert.Equal(tc.key, key, "%d", i)
 		} else {
+			// nolint: vet
 			assert.Error(err, "%d: %#v", i, key)
 		}
 	}

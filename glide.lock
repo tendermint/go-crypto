@@ -10,7 +10,7 @@ imports:
   subpackages:
   - base58
 - name: github.com/ethanfrey/hid
-  version: 660bb717bd4e7cbcdf0f7cd5cadf1cb2e4be452a
+  version: f89256ce77ab004deb0de7eea795e69ad44ac2ad
 - name: github.com/ethanfrey/ledger
   version: 23a7bb9d74bc83a862fcb4bddde24215b2295ad9
 - name: github.com/go-kit/kit

@@ -6,6 +6,7 @@ like standard ssh key storage.
 package filestorage
 
 import (
+	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	crypto "github.com/tendermint/go-crypto"
 	keys "github.com/tendermint/go-crypto/keys"
 )
@@ -51,7 +53,7 @@ var _ keys.Storage = FileStore{}
 
 // Put creates two files, one with the public info as json, the other
 // with the (encoded) private key as gpg ascii-armor style
-func (s FileStore) Put(name string, key []byte, info keys.Info) error {
+func (s FileStore) Put(name string, salt, key []byte, info keys.Info) error {
 	pub, priv := s.nameToPaths(name)
 
 	// write public info
@@ -61,22 +63,22 @@ func (s FileStore) Put(name string, key []byte, info keys.Info) error {
 	}
 
 	// write private info
-	return write(priv, name, key)
+	return write(priv, name, salt, key)
 }
 
 // Get loads the info and (encoded) private key from the directory
 // It uses `name` to generate the filename, and returns an error if the
 // files don't exist or are in the incorrect format
-func (s FileStore) Get(name string) ([]byte, keys.Info, error) {
+func (s FileStore) Get(name string) (salt, key []byte, info keys.Info, err error) {
 	pub, priv := s.nameToPaths(name)
 
-	info, err := readInfo(pub)
+	info, err = readInfo(pub)
 	if err != nil {
-		return nil, info, err
+		return nil, nil, info, err
 	}
 
-	key, _, err := read(priv)
-	return key, info.Format(), err
+	salt, key, _, err = read(priv)
+	return salt, key, info.Format(), err
 }
 
 // List parses the key directory for public info and returns a list of
@@ -128,49 +130,92 @@ func (s FileStore) nameToPaths(name string) (pub, priv string) {
 	return path.Join(s.keyDir, pubName), path.Join(s.keyDir, privName)
 }
 
-func writeInfo(path string, info keys.Info) error {
-	return write(path, info.Name, info.PubKey.Bytes())
-}
-
 func readInfo(path string) (info keys.Info, err error) {
-	var data []byte
-	data, info.Name, err = read(path)
-	if err != nil {
-		return
-	}
-	pk, err := crypto.PubKeyFromBytes(data)
-	info.PubKey = pk
-	return
-}
-
-func read(path string) ([]byte, string, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "Reading data")
+		return info, errors.Wrap(err, "Reading data")
 	}
 	defer f.Close()
 
 	d, err := ioutil.ReadAll(f)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "Reading data")
+		return info, errors.Wrap(err, "Reading data")
 	}
 	block, headers, key, err := crypto.DecodeArmor(string(d))
 	if err != nil {
-		return nil, "", errors.Wrap(err, "Invalid Armor")
+		return info, errors.Wrap(err, "Invalid Armor")
 	}
 	if block != BlockType {
-		return nil, "", errors.Errorf("Unknown key type: %s", block)
+		return info, errors.Errorf("Unknown key type: %s", block)
 	}
-	return key, headers["name"], nil
+	pk, err := crypto.PubKeyFromBytes(key)
+	if err != nil {
+		return info, errors.Wrap(err, "Unable to convert bytes to pubKey.")
+	}
+
+	info.Name = headers["name"]
+	info.PubKey = pk
+	return info, nil
 }
 
-func write(path, name string, key []byte) error {
+func read(path string) (salt, key []byte, name string, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, nil, "", errors.Wrap(err, "Reading data")
+	}
+	defer f.Close()
+
+	d, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, nil, "", errors.Wrap(err, "Reading data")
+	}
+	block, headers, key, err := crypto.DecodeArmor(string(d))
+	if err != nil {
+		return nil, nil, "", errors.Wrap(err, "Invalid Armor")
+	}
+	if block != BlockType {
+		return nil, nil, "", errors.Errorf("Unknown key type: %s", block)
+	}
+	if headers["kdf"] != "bcrypt" {
+		return nil, nil, "", errors.Errorf("Unrecognized KDF type: %v", headers["kdf"])
+	}
+	// NOTE: Some older keys were not stored with a salt.
+	if headers["salt"] == "" {
+		return nil, key, headers["name"], nil
+	}
+	salt, err = hex.DecodeString(headers["salt"])
+	if err != nil {
+		return nil, nil, "", errors.Errorf("Error decoding salt: %v", err.Error())
+	}
+	return salt, key, headers["name"], nil
+}
+
+func writeInfo(path string, info keys.Info) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, keyPerm)
 	if err != nil {
 		return errors.Wrap(err, "Writing data")
 	}
 	defer f.Close()
-	headers := map[string]string{"name": name}
+
+	headers := map[string]string{"name": info.Name}
+	text := crypto.EncodeArmor(BlockType, headers, info.PubKey.Bytes())
+	_, err = f.WriteString(text)
+	return errors.Wrap(err, "Writing data")
+}
+
+func write(path, name string, salt, key []byte) error {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, keyPerm)
+	if err != nil {
+		return errors.Wrap(err, "Writing data")
+	}
+	defer f.Close()
+
+	headers := map[string]string{
+		"name": name,
+		"kdf":  "bcrypt",
+		"salt": fmt.Sprintf("%X", salt),
+	}
+
 	text := crypto.EncodeArmor(BlockType, headers, key)
 	_, err = f.WriteString(text)
 	return errors.Wrap(err, "Writing data")
