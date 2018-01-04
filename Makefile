@@ -56,11 +56,11 @@ metalinter_test: ensure_tools
 		--enable=structcheck \
 	   	--enable=unconvert \
 		--enable=unused \
-		--enable=vetshadow \
 		--enable=vet \
 		--enable=varcheck \
 		./...
 
+		#--enable=vetshadow \
 		#--enable=dupl \
 		#--enable=errcheck \
 		#--enable=goimports \
