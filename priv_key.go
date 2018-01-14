@@ -85,9 +85,11 @@ func (p PrivKeyEd25519) MarshalJSON() ([]byte, error) {
 
 func (p *PrivKeyEd25519) UnmarshalJSON(enc []byte) error {
 	var ref []byte
-	err := data.Encoder.Unmarshal(&ref, enc)
+	if err := data.Encoder.Unmarshal(&ref, enc); err != nil {
+		return err
+	}
 	copy(p[:], ref)
-	return err
+	return nil
 }
 
 func (privKey PrivKeyEd25519) ToCurve25519() *[32]byte {
@@ -174,9 +176,11 @@ func (p PrivKeySecp256k1) MarshalJSON() ([]byte, error) {
 
 func (p *PrivKeySecp256k1) UnmarshalJSON(enc []byte) error {
 	var ref []byte
-	err := data.Encoder.Unmarshal(&ref, enc)
+	if err := data.Encoder.Unmarshal(&ref, enc); err != nil {
+		return err
+	}
 	copy(p[:], ref)
-	return err
+	return nil
 }
 
 func (privKey PrivKeySecp256k1) String() string {
