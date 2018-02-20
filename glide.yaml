@@ -1,5 +1,6 @@
 package: github.com/tendermint/go-crypto
 import:
+- package: github.com/cosmos/bech32cosmos/go
 - package: github.com/btcsuite/btcd
   subpackages:
   - btcec

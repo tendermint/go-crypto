@@ -16,6 +16,8 @@ func init() {
 }
 
 func RegisterWire(cdc *wire.Codec) {
+	cdc.RegisterConcrete(Address{},
+		"com.tendermint.wire.Address", nil)
 	cdc.RegisterInterface((*PubKey)(nil), nil)
 	cdc.RegisterConcrete(PubKeyEd25519{},
 		"com.tendermint.wire.PubKeyEd25519", nil)
