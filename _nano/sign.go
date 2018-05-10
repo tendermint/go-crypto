@@ -40,6 +40,9 @@ func generateSignRequests(payload []byte) [][]byte {
 }
 
 func parseDigest(resp []byte) (key, sig []byte, err error) {
+	if len(resp) < 4 {
+		return nil, nil, errors.Errorf("Incorrect length: %d", len(resp))
+	}
 	if resp[0] != App || resp[1] != Digest {
 		return nil, nil, errors.New("Invalid header")
 	}
