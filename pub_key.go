@@ -29,6 +29,7 @@ type PubKey interface {
 	Bytes() []byte
 	VerifyBytes(msg []byte, sig Signature) bool
 	Equals(PubKey) bool
+	IsValid() bool
 }
 
 //-------------------------------------
@@ -87,6 +88,15 @@ func (pubKey PubKeyEd25519) Equals(other PubKey) bool {
 	}
 }
 
+func (pubKey PubKeyEd25519) IsValid() bool {
+	for _, _byte := range pubKey {
+		if _byte != 0 {
+			return true
+		}
+	}
+	return false
+}
+
 //-------------------------------------
 
 var _ PubKey = PubKeySecp256k1{}
@@ -143,4 +153,13 @@ func (pubKey PubKeySecp256k1) Equals(other PubKey) bool {
 	} else {
 		return false
 	}
+}
+
+func (pubKey PubKeySecp256k1) IsValid() bool {
+	for _, _byte := range pubKey {
+		if _byte != 0 {
+			return true
+		}
+	}
+	return false
 }

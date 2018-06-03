@@ -13,6 +13,7 @@ func TestSignAndValidateEd25519(t *testing.T) {
 
 	privKey := GenPrivKeyEd25519()
 	pubKey := privKey.PubKey()
+	assert.True(t, pubKey.IsValid())
 
 	msg := CRandBytes(128)
 	sig := privKey.Sign(msg)
@@ -31,6 +32,7 @@ func TestSignAndValidateEd25519(t *testing.T) {
 func TestSignAndValidateSecp256k1(t *testing.T) {
 	privKey := GenPrivKeySecp256k1()
 	pubKey := privKey.PubKey()
+	assert.True(t, pubKey.IsValid())
 
 	msg := CRandBytes(128)
 	sig := privKey.Sign(msg)
@@ -66,6 +68,7 @@ func TestSignatureEncodings(t *testing.T) {
 	for _, tc := range cases {
 		// note we embed them from the beginning....
 		pubKey := tc.privKey.PubKey()
+		assert.True(t, pubKey.IsValid())
 
 		msg := CRandBytes(128)
 		sig := tc.privKey.Sign(msg)

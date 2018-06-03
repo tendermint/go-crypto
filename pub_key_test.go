@@ -37,6 +37,7 @@ func TestPubKeySecp256k1Address(t *testing.T) {
 		pub := pubT[:]
 		addr := priv.PubKey().Address()
 
+		require.True(t, priv.PubKey().IsValid(), "expected valid pubkey")
 		assert.Equal(t, pub, pubB, "Expected pub keys to match")
 		assert.Equal(t, addr, addrB, "Expected addresses to match")
 	}
@@ -46,4 +47,14 @@ func TestPubKeyInvalidDataProperReturnsEmpty(t *testing.T) {
 	pk, err := PubKeyFromBytes([]byte("foo"))
 	require.NotNil(t, err, "expecting a non-nil error")
 	require.Nil(t, pk, "expecting an empty public key on error")
+}
+
+func TestEmptyPubKeySecp256k1NotValid(t *testing.T) {
+	var pk PubKeySecp256k1
+	require.False(t, pk.IsValid(), "should have been invalid")
+}
+
+func TestEmptyPubKeyEd25519NotValid(t *testing.T) {
+	var pk PubKeyEd25519
+	require.False(t, pk.IsValid(), "should have been invalid")
 }
