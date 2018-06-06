@@ -267,11 +267,11 @@ func TestExportImportPubKey(t *testing.T) {
 	info, _, err := cstore.Create("john", "passphrase", keys.AlgoEd25519)
 	assert.Nil(t, err)
 	assert.Equal(t, info.GetName(), "john")
-	addr := info.GetAddress()
+	addr := info.GetPubKey().Address()
 	john, err := cstore.Get("john")
 	assert.Nil(t, err)
 	assert.Equal(t, john.GetName(), "john")
-	assert.Equal(t, john.GetAddress(), addr)
+	assert.Equal(t, john.GetPubKey().Address(), addr)
 
 	// Export the public key only
 	armor, err := cstore.ExportPubKey("john")
@@ -287,7 +287,7 @@ func TestExportImportPubKey(t *testing.T) {
 	// Ensure the original key hasn't changed
 	john, err = cstore.Get("john")
 	assert.Nil(t, err)
-	assert.Equal(t, john.GetAddress(), addr)
+	assert.Equal(t, john.GetPubKey().Address(), addr)
 	assert.Equal(t, john.GetName(), "john")
 
 	// Ensure keys cannot be overwritten
@@ -374,7 +374,7 @@ func TestSeedPhrase(t *testing.T) {
 	newInfo, err := cstore.Recover(n2, p2, seed)
 	require.Nil(t, err, "%+v", err)
 	assert.Equal(t, n2, newInfo.GetName())
-	assert.Equal(t, info.GetAddress(), newInfo.GetAddress())
+	assert.Equal(t, info.GetPubKey().Address(), newInfo.GetPubKey().Address())
 	assert.Equal(t, info.GetPubKey(), newInfo.GetPubKey())
 }
 

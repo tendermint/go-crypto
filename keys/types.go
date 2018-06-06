@@ -23,14 +23,15 @@ type Keybase interface {
 	ExportPubKey(name string) (armor string, err error)
 }
 
+// Publically exposed information about a keypair
 type Info interface {
 	GetName() string
 	GetPubKey() crypto.PubKey
-	GetAddress() []byte
 }
 
 var _ Info = &localInfo{}
 var _ Info = &ledgerInfo{}
+var _ Info = &offlineInfo{}
 
 // localInfo is the public information about a locally stored key
 type localInfo struct {
@@ -53,11 +54,6 @@ func (i localInfo) GetName() string {
 
 func (i localInfo) GetPubKey() crypto.PubKey {
 	return i.PubKey
-}
-
-// Address is a helper function to calculate the address from the pubkey
-func (i localInfo) GetAddress() []byte {
-	return i.PubKey.Address()
 }
 
 // ledgerInfo is the public information about a Ledger key
@@ -83,11 +79,28 @@ func (i ledgerInfo) GetPubKey() crypto.PubKey {
 	return i.PubKey
 }
 
-func (i ledgerInfo) GetAddress() []byte {
-	return i.PubKey.Address()
+// offlineInfo is the public information about an offline key
+type offlineInfo struct {
+	Name   string        `json:"name"`
+	PubKey crypto.PubKey `json:"pubkey"`
 }
 
-// encoding
+func newOfflineInfo(name string, pub crypto.PubKey) Info {
+	return &offlineInfo{
+		Name:   name,
+		PubKey: pub,
+	}
+}
+
+func (i offlineInfo) GetName() string {
+	return i.Name
+}
+
+func (i offlineInfo) GetPubKey() crypto.PubKey {
+	return i.PubKey
+}
+
+// encoding info
 func writeInfo(i Info) []byte {
 	bz, err := cdc.MarshalBinaryBare(i)
 	if err != nil {
@@ -96,7 +109,7 @@ func writeInfo(i Info) []byte {
 	return bz
 }
 
-// decoding
+// decoding info
 func readInfo(bz []byte) (info Info, err error) {
 	err = cdc.UnmarshalBinaryBare(bz, &info)
 	return
