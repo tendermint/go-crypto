@@ -110,16 +110,21 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig crypto.Signat
 	if err != nil {
 		return
 	}
-	if info.PrivKeyArmor == "" {
-		err = fmt.Errorf("private key not available")
-		return
+	switch info.(type) {
+	case localInfo:
+		linfo := info.(localInfo)
+		if linfo.PrivKeyArmor == "" {
+			err = fmt.Errorf("private key not available")
+			return
+		}
+		priv, err := unarmorDecryptPrivKey(linfo.PrivKeyArmor, passphrase)
+		if err != nil {
+			return nil, nil, err
+		}
+		sig = priv.Sign(msg)
+		pub = priv.PubKey()
+		return sig, pub, nil
 	}
-	priv, err := unarmorDecryptPrivKey(info.PrivKeyArmor, passphrase)
-	if err != nil {
-		return
-	}
-	sig = priv.Sign(msg)
-	pub = priv.PubKey()
 	return
 }
 
@@ -143,7 +148,7 @@ func (kb dbKeybase) ExportPubKey(name string) (armor string, err error) {
 	if err != nil {
 		return
 	}
-	return armorPubKeyBytes(info.PubKey.Bytes()), nil
+	return armorPubKeyBytes(info.GetPubKey().Bytes()), nil
 }
 
 func (kb dbKeybase) Import(name string, armor string) (err error) {
@@ -187,11 +192,16 @@ func (kb dbKeybase) Delete(name, passphrase string) error {
 	if err != nil {
 		return err
 	}
-	_, err = unarmorDecryptPrivKey(info.PrivKeyArmor, passphrase)
-	if err != nil {
-		return err
+	switch info.(type) {
+	case localInfo:
+		linfo := info.(localInfo)
+		_, err = unarmorDecryptPrivKey(linfo.PrivKeyArmor, passphrase)
+		if err != nil {
+			return err
+		}
+		kb.db.DeleteSync(infoKey(name))
+		return nil
 	}
-	kb.db.DeleteSync(infoKey(name))
 	return nil
 }
 
@@ -207,7 +217,8 @@ func (kb dbKeybase) Update(name, oldpass, newpass string) error {
 	}
 	switch info.(type) {
 	case localInfo:
-		key, err := unarmorDecryptPrivKey(info.PrivKeyArmor, oldpass)
+		linfo := info.(localInfo)
+		key, err := unarmorDecryptPrivKey(linfo.PrivKeyArmor, oldpass)
 		if err != nil {
 			return err
 		}
@@ -223,7 +234,7 @@ func (kb dbKeybase) writePubKey(pub crypto.PubKey, name string) Info {
 	info := newLocalInfo(name, pub, "")
 
 	// write them both
-	kb.db.SetSync(infoKey(name), info.bytes())
+	kb.db.SetSync(infoKey(name), writeInfo(info))
 	return info
 }
 
@@ -234,7 +245,7 @@ func (kb dbKeybase) writeKey(priv crypto.PrivKey, name, passphrase string) Info 
 	info := newLocalInfo(name, priv.PubKey(), privArmor)
 
 	// write them both
-	kb.db.SetSync(infoKey(name), info.bytes())
+	kb.db.SetSync(infoKey(name), writeInfo(info))
 	return info
 }
 
@@ -243,7 +254,7 @@ func (kb dbKeybase) writeLedgerKey(pub crypto.PubKey, path crypto.DerivationPath
 	info := newLedgerInfo(name, pub, path)
 
 	// write the ledger info
-	kb.db.SetSync(ledgerInfoKey(name), info.bytes())
+	kb.db.SetSync(ledgerInfoKey(name), writeInfo(info))
 	return info
 }
 
