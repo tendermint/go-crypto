@@ -4,19 +4,30 @@ import (
 	crypto "github.com/tendermint/go-crypto"
 )
 
-// Keybase allows simple CRUD on a keystore, as an aid to signing
+// Keybase exposes operations on a generic keystore
 type Keybase interface {
-	// Sign some bytes
+
+	// CRUD on the keystore
+	List() ([]Info, error)
+	Get(name string) (Info, error)
+	Delete(name, passphrase string) error
+
+	// Sign some bytes, looking up the private key to use
 	Sign(name, passphrase string, msg []byte) (crypto.Signature, crypto.PubKey, error)
-	// Create a new keypair
+
+	// Create a new locally-stored keypair
 	Create(name, passphrase string, algo CryptoAlgo) (info Info, seed string, err error)
 	// Recover takes a seedphrase and loads in the key
 	Recover(name, passphrase, seedphrase string) (info Info, erro error)
-	List() ([]Info, error)
-	Get(name string) (Info, error)
-	Update(name, oldpass, newpass string) error
-	Delete(name, passphrase string) error
 
+	// Create, store, and return a new Ledger key reference
+	CreateLedger(name string, path crypto.DerivationPath) (info Info, err error)
+
+	// Create, store, and return a new offline key reference
+	CreateOffline(name string, pubkey crypto.PubKey) (info Info, err error)
+
+	// The following operations will *only* work on locally-stored keys
+	Update(name, oldpass, newpass string) error
 	Import(name string, armor string) (err error)
 	ImportPubKey(name string, armor string) (err error)
 	Export(name string) (armor string, err error)
