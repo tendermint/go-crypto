@@ -121,8 +121,14 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig crypto.Signat
 		if err != nil {
 			return nil, nil, err
 		}
-		sig = priv.Sign(msg)
-		pub = priv.PubKey()
+		sig, err = priv.Sign(msg)
+		if err != nil {
+			return nil, nil, err
+		}
+		pub, err = priv.PubKey()
+		if err != nil {
+			return nil, nil, err
+		}
 		return sig, pub, nil
 	}
 	return
@@ -242,7 +248,11 @@ func (kb dbKeybase) writeKey(priv crypto.PrivKey, name, passphrase string) Info 
 	// generate the encrypted privkey
 	privArmor := encryptArmorPrivKey(priv, passphrase)
 	// make Info
-	info := newLocalInfo(name, priv.PubKey(), privArmor)
+	pub, err := priv.PubKey()
+	if err != nil {
+		panic(err)
+	}
+	info := newLocalInfo(name, pub, privArmor)
 
 	// write them both
 	kb.db.SetSync(infoKey(name), writeInfo(info))
