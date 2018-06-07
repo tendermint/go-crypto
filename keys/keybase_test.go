@@ -67,6 +67,24 @@ func TestKeyManagement(t *testing.T) {
 	_, err = cstore.Get(n1)
 	assert.NotNil(t, err)
 
+	// create an offline key
+	o1 := "offline"
+	priv1 := crypto.GenPrivKeyEd25519()
+	pub1, err := priv1.PubKey()
+	require.Nil(t, err)
+	i, err = cstore.CreateOffline(o1, pub1)
+	require.Nil(t, err)
+	require.Equal(t, pub1, i.GetPubKey())
+	require.Equal(t, o1, i.GetName())
+	keyS, err = cstore.List()
+	require.Equal(t, 2, len(keyS))
+
+	// delete the offline key
+	err = cstore.Delete(o1, "")
+	require.Nil(t, err)
+	keyS, err = cstore.List()
+	require.Equal(t, 1, len(keyS))
+
 	// make sure that it only signs with the right password
 	// tx := mock.NewSig([]byte("mytransactiondata"))
 	// err = cstore.Sign(n2, p1, tx)
