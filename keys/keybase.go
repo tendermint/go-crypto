@@ -1,7 +1,9 @@
 package keys
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -57,6 +59,7 @@ func (kb dbKeybase) Create(name, passphrase string, algo CryptoAlgo) (Info, stri
 }
 
 // CreateLedger generates a new locally-stored reference to a Ledger keypair
+// It returns the generated key info and an error if the Ledger could not be queried
 func (kb dbKeybase) CreateLedger(name string, path crypto.DerivationPath) (Info, error) {
 	priv, err := crypto.NewPrivKeyLedgerSecp256k1(path)
 	if err != nil {
@@ -70,6 +73,7 @@ func (kb dbKeybase) CreateLedger(name string, path crypto.DerivationPath) (Info,
 }
 
 // CreateOffline generates a new reference to an offline keypair
+// It returns the generated key info
 func (kb dbKeybase) CreateOffline(name string, pub crypto.PubKey) (Info, error) {
 	return kb.writeOfflineKey(pub, name), nil
 }
@@ -105,7 +109,6 @@ func (kb dbKeybase) List() ([]Info, error) {
 	iter := kb.db.Iterator(nil, nil)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		// key := iter.Key()
 		info, err := readInfo(iter.Value())
 		if err != nil {
 			return nil, err
@@ -147,7 +150,16 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig crypto.Signat
 			return
 		}
 	case offlineInfo:
-		//linfo := info.(offlineInfo)
+		linfo := info.(offlineInfo)
+		fmt.Printf("Bytes to sign:\n%s", msg)
+		buf := bufio.NewReader(os.Stdin)
+		fmt.Printf("Enter encoded signature: ")
+		signed, err := buf.ReadString('\n')
+		if err != nil {
+			return nil, nil, err
+		}
+		cdc.MustUnmarshalBinary([]byte(signed), sig)
+		return sig, linfo.GetPubKey(), nil
 	}
 	sig, err = priv.Sign(msg)
 	if err != nil {
