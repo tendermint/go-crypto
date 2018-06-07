@@ -128,6 +128,7 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig crypto.Signat
 	if err != nil {
 		return
 	}
+	var priv crypto.PrivKey
 	switch info.(type) {
 	case localInfo:
 		linfo := info.(localInfo)
@@ -135,21 +136,28 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig crypto.Signat
 			err = fmt.Errorf("private key not available")
 			return
 		}
-		priv, err := unarmorDecryptPrivKey(linfo.PrivKeyArmor, passphrase)
+		priv, err = unarmorDecryptPrivKey(linfo.PrivKeyArmor, passphrase)
 		if err != nil {
 			return nil, nil, err
 		}
-		sig, err = priv.Sign(msg)
+	case ledgerInfo:
+		linfo := info.(ledgerInfo)
+		priv, err = crypto.NewPrivKeyLedgerSecp256k1(linfo.Path)
 		if err != nil {
-			return nil, nil, err
+			return
 		}
-		pub, err = priv.PubKey()
-		if err != nil {
-			return nil, nil, err
-		}
-		return sig, pub, nil
+	case offlineInfo:
+		//linfo := info.(offlineInfo)
 	}
-	return
+	sig, err = priv.Sign(msg)
+	if err != nil {
+		return nil, nil, err
+	}
+	pub, err = priv.PubKey()
+	if err != nil {
+		return nil, nil, err
+	}
+	return sig, pub, nil
 }
 
 func (kb dbKeybase) Export(name string) (armor string, err error) {
