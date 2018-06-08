@@ -21,7 +21,7 @@ type Keybase interface {
 	Recover(name, passphrase, seedphrase string) (info Info, erro error)
 
 	// Create, store, and return a new Ledger key reference
-	CreateLedger(name string, path crypto.DerivationPath) (info Info, err error)
+	CreateLedger(name string, path crypto.DerivationPath, algo CryptoAlgo) (info Info, err error)
 
 	// Create, store, and return a new offline key reference
 	CreateOffline(name string, pubkey crypto.PubKey) (info Info, err error)

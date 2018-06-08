@@ -60,7 +60,10 @@ func (kb dbKeybase) CreateMnemonic(name, passphrase string, algo CryptoAlgo) (In
 
 // CreateLedger generates a new locally-stored reference to a Ledger keypair
 // It returns the generated key info and an error if the Ledger could not be queried
-func (kb dbKeybase) CreateLedger(name string, path crypto.DerivationPath) (Info, error) {
+func (kb dbKeybase) CreateLedger(name string, path crypto.DerivationPath, algo CryptoAlgo) (Info, error) {
+	if algo != AlgoSecp256k1 {
+		return nil, fmt.Errorf("Only secp256k1 is supported for Ledger devices")
+	}
 	priv, err := crypto.NewPrivKeyLedgerSecp256k1(path)
 	if err != nil {
 		return nil, err
