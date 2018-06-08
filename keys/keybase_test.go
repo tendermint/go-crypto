@@ -35,10 +35,10 @@ func TestKeyManagement(t *testing.T) {
 	// create some keys
 	_, err = cstore.Get(n1)
 	assert.NotNil(t, err)
-	i, _, err := cstore.Create(n1, p1, algo)
+	i, _, err := cstore.CreateMnemonic(n1, p1, algo)
 	require.Equal(t, n1, i.GetName())
 	require.Nil(t, err)
-	_, _, err = cstore.Create(n2, p2, algo)
+	_, _, err = cstore.CreateMnemonic(n2, p2, algo)
 	require.Nil(t, err)
 
 	// we can get these keys
@@ -113,10 +113,10 @@ func TestSignVerify(t *testing.T) {
 	p1, p2, p3 := "1234", "foobar", "foobar"
 
 	// create two users and get their info
-	i1, _, err := cstore.Create(n1, p1, algo)
+	i1, _, err := cstore.CreateMnemonic(n1, p1, algo)
 	require.Nil(t, err)
 
-	i2, _, err := cstore.Create(n2, p2, algo)
+	i2, _, err := cstore.CreateMnemonic(n2, p2, algo)
 	require.Nil(t, err)
 
 	// Import a public key
@@ -249,7 +249,7 @@ func TestExportImport(t *testing.T) {
 		words.MustLoadCodec("english"),
 	)
 
-	info, _, err := cstore.Create("john", "passphrase", keys.AlgoEd25519)
+	info, _, err := cstore.CreateMnemonic("john", "passphrase", keys.AlgoEd25519)
 	assert.Nil(t, err)
 	assert.Equal(t, info.GetName(), "john")
 	addr := info.GetPubKey().Address()
@@ -282,7 +282,7 @@ func TestExportImportPubKey(t *testing.T) {
 	)
 
 	// Create a private-public key pair and ensure consistency
-	info, _, err := cstore.Create("john", "passphrase", keys.AlgoEd25519)
+	info, _, err := cstore.CreateMnemonic("john", "passphrase", keys.AlgoEd25519)
 	assert.Nil(t, err)
 	assert.Equal(t, info.GetName(), "john")
 	addr := info.GetPubKey().Address()
@@ -327,7 +327,7 @@ func TestAdvancedKeyManagement(t *testing.T) {
 	p1, p2 := "1234", "foobar"
 
 	// make sure key works with initial password
-	_, _, err := cstore.Create(n1, p1, algo)
+	_, _, err := cstore.CreateMnemonic(n1, p1, algo)
 	require.Nil(t, err, "%+v", err)
 	assertPassword(t, cstore, n1, p1, p2)
 
@@ -377,7 +377,7 @@ func TestSeedPhrase(t *testing.T) {
 	p1, p2 := "1234", "foobar"
 
 	// make sure key works with initial password
-	info, seed, err := cstore.Create(n1, p1, algo)
+	info, seed, err := cstore.CreateMnemonic(n1, p1, algo)
 	require.Nil(t, err, "%+v", err)
 	assert.Equal(t, n1, info.GetName())
 	assert.NotEmpty(t, seed)
@@ -406,7 +406,7 @@ func ExampleNew() {
 	sec := keys.AlgoSecp256k1
 
 	// Add keys and see they return in alphabetical order
-	bob, _, err := cstore.Create("Bob", "friend", ed)
+	bob, _, err := cstore.CreateMnemonic("Bob", "friend", ed)
 	if err != nil {
 		// this should never happen
 		fmt.Println(err)
@@ -414,8 +414,8 @@ func ExampleNew() {
 		// return info here just like in List
 		fmt.Println(bob.GetName())
 	}
-	cstore.Create("Alice", "secret", sec)
-	cstore.Create("Carl", "mitm", ed)
+	cstore.CreateMnemonic("Alice", "secret", sec)
+	cstore.CreateMnemonic("Carl", "mitm", ed)
 	info, _ := cstore.List()
 	for _, i := range info {
 		fmt.Println(i.GetName())

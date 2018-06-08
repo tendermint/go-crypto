@@ -28,12 +28,12 @@ func New(db dbm.DB, codec words.Codec) dbKeybase {
 
 var _ Keybase = dbKeybase{}
 
-// Create generates a new key and persists it to storage, encrypted
+// CreateMnemonic generates a new key and persists it to storage, encrypted
 // using the passphrase.  It returns the generated seedphrase
 // (mnemonic) and the key Info.  It returns an error if it fails to
 // generate a key for the given algo type, or if another key is
 // already stored under the same name.
-func (kb dbKeybase) Create(name, passphrase string, algo CryptoAlgo) (Info, string, error) {
+func (kb dbKeybase) CreateMnemonic(name, passphrase string, algo CryptoAlgo) (Info, string, error) {
 	// NOTE: secret is SHA256 hashed by secp256k1 and ed25519.
 	// 16 byte secret corresponds to 12 BIP39 words.
 	// XXX: Ledgers use 24 words now - should we ?
