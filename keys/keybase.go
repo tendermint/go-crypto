@@ -100,7 +100,7 @@ func (kb dbKeybase) Recover(name, passphrase, seedphrase string) (Info, error) {
 
 	// encrypt and persist key.
 	public := kb.writeLocalKey(priv, name, passphrase)
-	return public, err
+	return public, nil
 }
 
 // List returns the keys from storage in alphabetical order.
@@ -230,6 +230,8 @@ func (kb dbKeybase) ImportPubKey(name string, armor string) (err error) {
 
 // Delete removes key forever, but we must present the
 // proper passphrase before deleting it (for security).
+// A passphrase of 'yes' is used to delete stored
+// references to offline and Ledger / HW wallet keys
 func (kb dbKeybase) Delete(name, passphrase string) error {
 	// verify we have the proper password before deleting
 	info, err := kb.Get(name)
@@ -245,8 +247,11 @@ func (kb dbKeybase) Delete(name, passphrase string) error {
 		}
 		kb.db.DeleteSync(infoKey(name))
 		return nil
-	default:
-		// TODO perhaps confirm with user?
+	case ledgerInfo:
+	case offlineInfo:
+		if passphrase != "yes" {
+			return fmt.Errorf("Enter exactly 'yes' to delete the key")
+		}
 		kb.db.DeleteSync(infoKey(name))
 		return nil
 	}
