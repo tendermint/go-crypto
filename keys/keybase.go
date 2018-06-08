@@ -224,7 +224,7 @@ func (kb dbKeybase) ImportPubKey(name string, armor string) (err error) {
 	if err != nil {
 		return
 	}
-	kb.writePubKey(pubKey, name)
+	kb.writeOfflineKey(pubKey, name)
 	return
 }
 
@@ -282,15 +282,6 @@ func (kb dbKeybase) Update(name, oldpass, newpass string) error {
 	}
 }
 
-func (kb dbKeybase) writePubKey(pub crypto.PubKey, name string) Info {
-	// make Info
-	info := newLocalInfo(name, pub, "")
-
-	// write them both
-	kb.db.SetSync(infoKey(name), writeInfo(info))
-	return info
-}
-
 func (kb dbKeybase) writeLocalKey(priv crypto.PrivKey, name, passphrase string) Info {
 	// generate the encrypted privkey
 	privArmor := encryptArmorPrivKey(priv, passphrase)
@@ -312,13 +303,14 @@ func (kb dbKeybase) writeLedgerKey(pub crypto.PubKey, path crypto.DerivationPath
 }
 
 func (kb dbKeybase) writeOfflineKey(pub crypto.PubKey, name string) Info {
+	// generate the offline info
 	info := newOfflineInfo(name, pub)
 	kb.writeInfo(info, name)
 	return info
 }
 
 func (kb dbKeybase) writeInfo(info Info, name string) {
-	// write them both
+	// write the info by key
 	kb.db.SetSync(infoKey(name), writeInfo(info))
 }
 
