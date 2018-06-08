@@ -253,7 +253,7 @@ func (kb dbKeybase) Delete(name, passphrase string) error {
 	case ledgerInfo:
 	case offlineInfo:
 		if passphrase != "yes" {
-			return fmt.Errorf("Enter exactly 'yes' to delete the key")
+			return fmt.Errorf("enter exactly 'yes' to delete the key")
 		}
 		kb.db.DeleteSync(infoKey(name))
 		return nil
