@@ -113,11 +113,11 @@ func (i offlineInfo) GetPubKey() crypto.PubKey {
 
 // encoding info
 func writeInfo(i Info) []byte {
-	return cdc.MustMarshalBinaryBare(i)
+	return cdc.MustMarshalBinary(i)
 }
 
 // decoding info
 func readInfo(bz []byte) (info Info, err error) {
-	err = cdc.UnmarshalBinaryBare(bz, &info)
+	err = cdc.UnmarshalBinary(bz, &info)
 	return
 }
