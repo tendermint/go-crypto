@@ -119,7 +119,7 @@
     "leveldb/table",
     "leveldb/util"
   ]
-  revision = "db3ee9ee8931e51af7158114b9d02bf93d1a7811"
+  revision = "e2150783cd35f5b607daca48afd8c57ec54cc995"
 
 [[projects]]
   branch = "master"
@@ -155,7 +155,6 @@
   revision = "8e7a99b3e716f36d3b080a9a70f9eb45abe4edcc"
 
 [[projects]]
-  branch = "master"
   name = "github.com/zondax/ledger-goclient"
   packages = ["."]
   revision = "065cbf938a16f20335c40cfe180f9cd4955c6a5a"
@@ -187,6 +186,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "95840d473c328750caa98a661e4f4c7900ac3ed1545a95536e3914b6f951fd7c"
+  inputs-digest = "f20e34cd998442d4ffe2f9aa45ab87a55ba6e4cd19f29009adaadac3b5dccf26"
   solver-name = "gps-cdcl"
   solver-version = 1

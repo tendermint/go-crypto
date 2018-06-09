@@ -24,10 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-[[override]]
-  name = "github.com/brejski/hid"
-  branch = "master"
-
 [[constraint]]
   name = "github.com/btcsuite/btcutil"
   branch = "master"
@@ -62,7 +58,7 @@
 
 [[constraint]]
   name = "github.com/zondax/ledger-goclient"
-  branch = "master"
+  revision = "065cbf938a16f20335c40cfe180f9cd4955c6a5a"
 
 [prune]
   go-tests = true
