@@ -36,7 +36,11 @@ type Keybase interface {
 
 // Publically exposed information about a keypair
 type Info interface {
+	// Human-readable type for key listing
+	GetType() string
+	// Name of the key
 	GetName() string
+	// Public key
 	GetPubKey() crypto.PubKey
 }
 
@@ -57,6 +61,10 @@ func newLocalInfo(name string, pub crypto.PubKey, privArmor string) Info {
 		PubKey:       pub,
 		PrivKeyArmor: privArmor,
 	}
+}
+
+func (i localInfo) GetType() string {
+	return "local"
 }
 
 func (i localInfo) GetName() string {
@@ -82,6 +90,10 @@ func newLedgerInfo(name string, pub crypto.PubKey, path crypto.DerivationPath) I
 	}
 }
 
+func (i ledgerInfo) GetType() string {
+	return "ledger"
+}
+
 func (i ledgerInfo) GetName() string {
 	return i.Name
 }
@@ -101,6 +113,10 @@ func newOfflineInfo(name string, pub crypto.PubKey) Info {
 		Name:   name,
 		PubKey: pub,
 	}
+}
+
+func (i offlineInfo) GetType() string {
+	return "offline"
 }
 
 func (i offlineInfo) GetName() string {
