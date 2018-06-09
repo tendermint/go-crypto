@@ -16,12 +16,12 @@ type Keybase interface {
 	Sign(name, passphrase string, msg []byte) (crypto.Signature, crypto.PubKey, error)
 
 	// Create a new locally-stored keypair, returning the mnemonic
-	CreateMnemonic(name, passphrase string, algo CryptoAlgo) (info Info, seed string, err error)
+	CreateMnemonic(name, passphrase string, algo SignAlgo) (info Info, seed string, err error)
 	// Recover takes a seedphrase and loads in the key
 	Recover(name, passphrase, seedphrase string) (info Info, erro error)
 
 	// Create, store, and return a new Ledger key reference
-	CreateLedger(name string, path crypto.DerivationPath, algo CryptoAlgo) (info Info, err error)
+	CreateLedger(name string, path crypto.DerivationPath, algo SignAlgo) (info Info, err error)
 
 	// Create, store, and return a new offline key reference
 	CreateOffline(name string, pubkey crypto.PubKey) (info Info, err error)
