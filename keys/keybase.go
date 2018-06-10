@@ -156,7 +156,7 @@ func (kb dbKeybase) Sign(name, passphrase string, msg []byte) (sig crypto.Signat
 		linfo := info.(offlineInfo)
 		fmt.Printf("Bytes to sign:\n%s", msg)
 		buf := bufio.NewReader(os.Stdin)
-		fmt.Printf("\nEnter encoded signature:\n")
+		fmt.Printf("\nEnter Amino-encoded signature:\n")
 		signed, err := buf.ReadString('\n')
 		if err != nil {
 			return nil, nil, err
