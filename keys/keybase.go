@@ -58,8 +58,8 @@ func (kb dbKeybase) CreateMnemonic(name, passphrase string, algo SignAlgo) (Info
 	return info, seed, err
 }
 
-// CreateLedger generates a new locally-stored reference to a Ledger keypair
-// It returns the generated key info and an error if the Ledger could not be queried
+// CreateLedger creates a new locally-stored reference to a Ledger keypair
+// It returns the created key info and an error if the Ledger could not be queried
 func (kb dbKeybase) CreateLedger(name string, path crypto.DerivationPath, algo SignAlgo) (Info, error) {
 	if algo != AlgoSecp256k1 {
 		return nil, fmt.Errorf("Only secp256k1 is supported for Ledger devices")
@@ -75,8 +75,8 @@ func (kb dbKeybase) CreateLedger(name string, path crypto.DerivationPath, algo S
 	return kb.writeLedgerKey(pub, path, name), nil
 }
 
-// CreateOffline generates a new reference to an offline keypair
-// It returns the generated key info
+// CreateOffline creates a new reference to an offline keypair
+// It returns the created key info
 func (kb dbKeybase) CreateOffline(name string, pub crypto.PubKey) (Info, error) {
 	return kb.writeOfflineKey(pub, name), nil
 }
@@ -287,7 +287,7 @@ func (kb dbKeybase) Update(name, oldpass, newpass string) error {
 }
 
 func (kb dbKeybase) writeLocalKey(priv crypto.PrivKey, name, passphrase string) Info {
-	// generate the encrypted privkey
+	// encrypt private key using passphrase
 	privArmor := encryptArmorPrivKey(priv, passphrase)
 	// make Info
 	pub, err := priv.PubKey()
@@ -300,14 +300,12 @@ func (kb dbKeybase) writeLocalKey(priv crypto.PrivKey, name, passphrase string) 
 }
 
 func (kb dbKeybase) writeLedgerKey(pub crypto.PubKey, path crypto.DerivationPath, name string) Info {
-	// generate the ledger info
 	info := newLedgerInfo(name, pub, path)
 	kb.writeInfo(info, name)
 	return info
 }
 
 func (kb dbKeybase) writeOfflineKey(pub crypto.PubKey, name string) Info {
-	// generate the offline info
 	info := newOfflineInfo(name, pub)
 	kb.writeInfo(info, name)
 	return info
