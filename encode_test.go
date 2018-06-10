@@ -70,7 +70,7 @@ func TestKeyEncodings(t *testing.T) {
 		// Check (de/en)codings of Signatures.
 		var sig1, sig2, sig3 Signature
 		sig1, err := tc.privKey.Sign([]byte("something"))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		checkAminoBinary(t, sig1, &sig2, -1) // Siganture size changes for Secp anyways.
 		assert.EqualValues(t, sig1, sig2)
 		checkAminoJSON(t, sig1, &sig3, false) // TODO also check Prefix bytes.
@@ -78,7 +78,7 @@ func TestKeyEncodings(t *testing.T) {
 
 		// Check (de/en)codings of PubKeys.
 		pubKey, err := tc.privKey.PubKey()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		var pub2, pub3 PubKey
 		checkAminoBinary(t, pubKey, &pub2, tc.pubSize)
 		assert.EqualValues(t, pubKey, pub2)

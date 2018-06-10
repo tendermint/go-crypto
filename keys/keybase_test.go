@@ -43,7 +43,7 @@ func TestKeyManagement(t *testing.T) {
 
 	// we can get these keys
 	i2, err := cstore.Get(n2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	_, err = cstore.Get(n3)
 	assert.NotNil(t, err)
 
@@ -252,23 +252,23 @@ func TestExportImport(t *testing.T) {
 	)
 
 	info, _, err := cstore.CreateMnemonic("john", "passphrase", keys.AlgoEd25519)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, info.GetName(), "john")
 	addr := info.GetPubKey().Address()
 
 	john, err := cstore.Get("john")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, john.GetName(), "john")
 	assert.Equal(t, john.GetPubKey().Address(), addr)
 
 	armor, err := cstore.Export("john")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	err = cstore.Import("john2", armor)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	john2, err := cstore.Get("john2")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, john.GetPubKey().Address(), addr)
 	assert.Equal(t, john.GetName(), "john")
@@ -285,28 +285,28 @@ func TestExportImportPubKey(t *testing.T) {
 
 	// Create a private-public key pair and ensure consistency
 	info, _, err := cstore.CreateMnemonic("john", "passphrase", keys.AlgoEd25519)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, info.GetName(), "john")
 	addr := info.GetPubKey().Address()
 	john, err := cstore.Get("john")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, john.GetName(), "john")
 	assert.Equal(t, john.GetPubKey().Address(), addr)
 
 	// Export the public key only
 	armor, err := cstore.ExportPubKey("john")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	// Import it under a different name
 	err = cstore.ImportPubKey("john-pubkey-only", armor)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	// Ensure consistency
 	john2, err := cstore.Get("john-pubkey-only")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	// Compare the public keys
 	assert.True(t, john.GetPubKey().Equals(john2.GetPubKey()))
 	// Ensure the original key hasn't changed
 	john, err = cstore.Get("john")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, john.GetPubKey().Address(), addr)
 	assert.Equal(t, john.GetName(), "john")
 
@@ -340,7 +340,7 @@ func TestAdvancedKeyManagement(t *testing.T) {
 
 	// then it changes the password when correct
 	err = cstore.Update(n1, p1, p2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	// p2 is now the proper one!
 	assertPassword(t, cstore, n1, p2, p1)
 
@@ -358,7 +358,7 @@ func TestAdvancedKeyManagement(t *testing.T) {
 
 	// import succeeds
 	err = cstore.Import(n2, exported)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// second import fails
 	err = cstore.Import(n2, exported)

@@ -34,7 +34,7 @@ func TestPubKeySecp256k1Address(t *testing.T) {
 		copy(priv[:], privB)
 
 		pubKey, err := priv.PubKey()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		pubT, _ := pubKey.(PubKeySecp256k1)
 		pub := pubT[:]
 		addr := pubKey.Address()
