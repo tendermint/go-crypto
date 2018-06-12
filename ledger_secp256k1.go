@@ -73,7 +73,11 @@ func (pk *PrivKeyLedgerSecp256k1) AssertIsPrivKeyInner() {}
 // Bytes fulfils PrivKey Interface - but it stores the cached pubkey so we can verify
 // the same key when we reconnect to a ledger
 func (pk PrivKeyLedgerSecp256k1) Bytes() []byte {
-	return cdc.MustMarshalBinaryBare(pk)
+	bin, err := cdc.MarshalBinaryBare(pk)
+	if err != nil {
+		panic(err)
+	}
+	return bin
 }
 
 // Sign calls the ledger and stores the PubKey for future use
@@ -81,34 +85,39 @@ func (pk PrivKeyLedgerSecp256k1) Bytes() []byte {
 // Communication is checked on NewPrivKeyLedger and PrivKeyFromBytes,
 // returning an error, so this should only trigger if the privkey is held
 // in memory for a while before use.
-func (pk PrivKeyLedgerSecp256k1) Sign(msg []byte) (Signature, error) {
+func (pk PrivKeyLedgerSecp256k1) Sign(msg []byte) Signature {
+	// oh, I wish there was better error handling
 	dev, err := getLedger()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	sig, err := signLedgerSecp256k1(dev, pk.Path, msg)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	pub, err := pubkeyLedgerSecp256k1(dev, pk.Path)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// if we have no pubkey yet, store it for future queries
 	if pk.CachedPubKey == nil {
 		pk.CachedPubKey = pub
 	} else if !pk.CachedPubKey.Equals(pub) {
-		return nil, fmt.Errorf("stored key does not match signing key")
+		panic("stored key does not match signing key")
 	}
-	return sig, nil
+	return sig
 }
 
 // PubKey returns the stored PubKey
-func (pk PrivKeyLedgerSecp256k1) PubKey() (PubKey, error) {
-	return pk.getPubKey()
+func (pk PrivKeyLedgerSecp256k1) PubKey() PubKey {
+	key, err := pk.getPubKey()
+	if err != nil {
+		panic(err)
+	}
+	return key
 }
 
 // getPubKey reads the pubkey from cache or from the ledger itself
