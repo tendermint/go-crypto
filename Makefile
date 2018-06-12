@@ -45,6 +45,7 @@ get_vendor_deps:
 	@rm -rf vendor/
 	@echo "--> Running dep ensure"
 	@dep ensure
+	@git clone --recursive https://github.com/dis2/bls12.git vendor/github.com/dis2/bls12
 
 
 ########################################

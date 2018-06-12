@@ -7,13 +7,14 @@ import (
 
 	"golang.org/x/crypto/ripemd160"
 
+	bgls "github.com/Project-Arda/bgls/bgls"
+	curves "github.com/Project-Arda/bgls/curves"
 	secp256k1 "github.com/btcsuite/btcd/btcec"
-
-	"github.com/tendermint/ed25519"
-	"github.com/tendermint/ed25519/extra25519"
 
 	cmn "github.com/tendermint/tmlibs/common"
 
+	"github.com/tendermint/ed25519"
+	"github.com/tendermint/ed25519/extra25519"
 	"github.com/tendermint/go-crypto/tmhash"
 )
 
@@ -146,4 +147,60 @@ func (pubKey PubKeySecp256k1) Equals(other PubKey) bool {
 	} else {
 		return false
 	}
+}
+
+var _ PubKey = PubKeyBLS381KOS{}
+var _ KOSPubKey = PubKeyBLS381KOS{}
+
+// KOSPubKey defines an interface for Knowledge of Secret based BLS keys
+type KOSPubKey interface {
+	Authenticate() bool
+}
+
+// PubKeyBLS381KOS holds pubkey and KOS authentication as bytes
+type PubKeyBLS381KOS [144]byte
+
+// Address returns the 160bit hash of the public key
+func (pubKey PubKeyBLS381KOS) Address() Address {
+	hasher := ripemd160.New()
+	hasher.Write(pubKey.Bytes()) // does not error
+	return Address(hasher.Sum(nil))
+}
+
+// Bytes returns the amino encoded public key
+func (pubKey PubKeyBLS381KOS) Bytes() []byte {
+	bz, err := cdc.MarshalBinaryBare(pubKey)
+	if err != nil {
+		panic(err)
+	}
+	return bz
+}
+
+// VerifyBytes verifies the provided signature on the message
+func (pubKey PubKeyBLS381KOS) VerifyBytes(msg []byte, sig Signature) bool {
+	sigg := sig.(SignatureBLS381KOS)
+	sigp, _ := curves.Bls12.UnmarshalG1(sigg[:])
+	keyp, _ := curves.Bls12.UnmarshalG2(pubKey[48:])
+	return bgls.KoskVerifySingleSignature(curves.Bls12, sigp, keyp, msg)
+}
+
+// String returns a string representation of the bytes of the public key
+func (pubKey PubKeyBLS381KOS) String() string {
+	return fmt.Sprintf("PubKeyBLS381KOS{%X}", pubKey[:])
+}
+
+// Equals checks for type and byte equality between two public keys
+func (pubKey PubKeyBLS381KOS) Equals(other PubKey) bool {
+	if otherBls, ok := other.(PubKeyBLS381KOS); ok {
+		return bytes.Equal(pubKey[:], otherBls[:])
+	}
+	return false
+}
+
+// Authenticate checks that this public key includes a proof of knowledge of secret
+// Needed to counteract rouge key attacks on BLS
+func (pubKey PubKeyBLS381KOS) Authenticate() bool {
+	auth, _ := curves.Bls12.UnmarshalG1(pubKey[:48])
+	pub, _ := curves.Bls12.UnmarshalG2(pubKey[48:])
+	return bgls.CheckAuthentication(curves.Bls12, pub, auth)
 }

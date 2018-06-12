@@ -48,11 +48,14 @@ func ExamplePrintRegisteredTypes() {
 	//| ---- | ---- | ------ | ----- | ------ |
 	//| PubKeyEd25519 | tendermint/PubKeyEd25519 | 0x1624DE64 | 0x20 |  |
 	//| PubKeySecp256k1 | tendermint/PubKeySecp256k1 | 0xEB5AE987 | 0x21 |  |
+	//| PubKeyBLS381KOS | tendermint/PubKeyBLS381KOS | 0xC468962B | 0x90 |  |
 	//| PrivKeyEd25519 | tendermint/PrivKeyEd25519 | 0xA3288910 | 0x40 |  |
 	//| PrivKeySecp256k1 | tendermint/PrivKeySecp256k1 | 0xE1B0F79B | 0x20 |  |
 	//| PrivKeyLedgerSecp256k1 | tendermint/PrivKeyLedgerSecp256k1 | 0x10CAB393 | variable |  |
+	//| PrivKeyBLS381KOS | tendermint/PrivKeyBLS381KOS | 0xAE21F340 | 0x20 |  |
 	//| SignatureEd25519 | tendermint/SignatureEd25519 | 0x2031EA53 | 0x40 |  |
 	//| SignatureSecp256k1 | tendermint/SignatureSecp256k1 | 0x7FC4A495 | variable |  |
+	//| SignatureBLS381KOS | tendermint/SignatureBLS381KOS | 0x374E01C9 | 0x30 |  |
 }
 
 func TestKeyEncodings(t *testing.T) {

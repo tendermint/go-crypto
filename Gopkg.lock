@@ -2,6 +2,15 @@
 
 
 [[projects]]
+  name = "github.com/Project-Arda/bgls"
+  packages = [
+    "bgls",
+    "curves"
+  ]
+  revision = "677a049c01acc60602f9ea9c8f64067a97986b1a"
+  version = "v0.5.1"
+
+[[projects]]
   branch = "master"
   name = "github.com/brejski/hid"
   packages = ["."]
@@ -24,6 +33,21 @@
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
   version = "v1.1.0"
+
+[[projects]]
+  name = "github.com/dchest/blake2b"
+  packages = ["."]
+  revision = "06006a921c7d13e3fdf63c401cb0e4529a26e6e4"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/ethereum/go-ethereum"
+  packages = [
+    "crypto/bn256/cloudflare",
+    "crypto/sha3"
+  ]
+  revision = "eae63c511ceafab14b92e274c1b18bf1700e2d3d"
+  version = "v1.8.10"
 
 [[projects]]
   name = "github.com/go-kit/kit"
@@ -164,6 +188,7 @@
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
+    "blake2b",
     "blowfish",
     "chacha20poly1305",
     "internal/chacha20",
@@ -173,7 +198,8 @@
     "pbkdf2",
     "poly1305",
     "ripemd160",
-    "salsa20/salsa"
+    "salsa20/salsa",
+    "sha3"
   ]
   revision = "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9"
 
@@ -181,11 +207,19 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["cpu"]
+<<<<<<< 1a2f468695f9a57907cda7f018855ea7cc912175
   revision = "a9e25c09b96b8870693763211309e213c6ef299d"
+=======
+  revision = "bff228c7b664c5fce602223a05fb708fd8654986"
+>>>>>>> Working BLS signatures
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
+<<<<<<< 1a2f468695f9a57907cda7f018855ea7cc912175
   inputs-digest = "1731880d432026bbd22865582cf7c7dd6d5c65618149de586e30ce156d338c01"
+=======
+  inputs-digest = "e1fe9a7570548637431db6a66e869d46615bb59005d2e88bf492f1ece449430f"
+>>>>>>> Working BLS signatures
   solver-name = "gps-cdcl"
   solver-version = 1
