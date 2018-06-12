@@ -27,10 +27,12 @@ func RegisterAmino(cdc *amino.Codec) {
 		"tendermint/PrivKeyEd25519", nil)
 	cdc.RegisterConcrete(PrivKeySecp256k1{},
 		"tendermint/PrivKeySecp256k1", nil)
+	cdc.RegisterConcrete(PrivKeyLedgerSecp256k1{},
+		"tendermint/PrivKeyLedgerSecp256k1", nil)
 
 	cdc.RegisterInterface((*Signature)(nil), nil)
 	cdc.RegisterConcrete(SignatureEd25519{},
-		"tendermint/SignatureKeyEd25519", nil)
+		"tendermint/SignatureEd25519", nil)
 	cdc.RegisterConcrete(SignatureSecp256k1{},
-		"tendermint/SignatureKeySecp256k1", nil)
+		"tendermint/SignatureSecp256k1", nil)
 }
