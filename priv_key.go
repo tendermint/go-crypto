@@ -18,7 +18,8 @@ func PrivKeyFromBytes(privKeyBytes []byte) (privKey PrivKey, err error) {
 type PrivKey interface {
 	Bytes() []byte
 	Sign(msg []byte) (Signature, error)
-	PubKey() (PubKey, error)
+
+	PubKey() PubKey
 	Equals(PrivKey) bool
 }
 
