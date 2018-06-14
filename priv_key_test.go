@@ -11,8 +11,8 @@ func TestGeneratePrivKey(t *testing.T) {
 	testPriv := crypto.GenPrivKeyEd25519()
 	testGenerate := testPriv.Generate(1)
 	signBytes := []byte("something to sign")
-	pub, err := testGenerate.PubKey()
-	assert.NoError(t, err)
+
+	pub := testGenerate.PubKey()
 	sig, err := testGenerate.Sign(signBytes)
 	assert.NoError(t, err)
 	assert.True(t, pub.VerifyBytes(signBytes, sig))
