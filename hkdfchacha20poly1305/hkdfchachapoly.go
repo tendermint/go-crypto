@@ -1,4 +1,4 @@
-package xchacha20poly1305
+package hkdfchacha20poly1305
 
 import (
 	"crypto/cipher"
@@ -46,28 +46,24 @@ func (c *hkdfchacha20poly1305) Overhead() int {
 
 func (c *hkdfchacha20poly1305) Seal(dst, nonce, plaintext, additionalData []byte) []byte {
 	if len(nonce) != NonceSize {
-		panic("xchacha20poly1305: bad nonce length passed to Seal")
+		panic("hkdfchacha20poly1305: bad nonce length passed to Seal")
 	}
 
 	if uint64(len(plaintext)) > (1<<38)-64 {
-		panic("xchacha20poly1305: plaintext too large")
+		panic("hkdfchacha20poly1305: plaintext too large")
 	}
 
 	var subKey [KeySize]byte
-	var hNonce [16]byte
-	var subNonce [chacha20poly1305.NonceSize]byte
-	copy(hNonce[:], nonce[:16])
+	var chachaNonce [chacha20poly1305.NonceSize]byte
 
 	hash := sha256.New
-	hkdf := hkdf.New(hash, c.key[:], hNonce[:], []byte(HkdfInfo))
+	hkdf := hkdf.New(hash, c.key[:], nonce, []byte(HkdfInfo))
 	io.ReadFull(hkdf, subKey[:])
-	// HChaCha20(&subKey, &hNonce, &c.key)
+	io.ReadFull(hkdf, chachaNonce[:])
 
 	chacha20poly1305, _ := chacha20poly1305.New(subKey[:])
 
-	copy(subNonce[4:], nonce[16:])
-
-	return chacha20poly1305.Seal(dst, subNonce[:], plaintext, additionalData)
+	return chacha20poly1305.Seal(dst, chachaNonce[:], plaintext, additionalData)
 }
 
 func (c *hkdfchacha20poly1305) Open(dst, nonce, ciphertext, additionalData []byte) ([]byte, error) {
@@ -78,18 +74,14 @@ func (c *hkdfchacha20poly1305) Open(dst, nonce, ciphertext, additionalData []byt
 		return nil, fmt.Errorf("hkdfchacha20poly1305: ciphertext too large")
 	}
 	var subKey [KeySize]byte
-	var hNonce [16]byte
-	var subNonce [chacha20poly1305.NonceSize]byte
-	copy(hNonce[:], nonce[:16])
+	var chachaNonce [chacha20poly1305.NonceSize]byte
 
 	hash := sha256.New
-	hkdf := hkdf.New(hash, c.key[:], hNonce[:], []byte(HkdfInfo))
+	hkdf := hkdf.New(hash, c.key[:], nonce, []byte(HkdfInfo))
 	io.ReadFull(hkdf, subKey[:])
-	// HChaCha20(&subKey, &hNonce, &c.key)
+	io.ReadFull(hkdf, chachaNonce[:])
 
 	chacha20poly1305, _ := chacha20poly1305.New(subKey[:])
 
-	copy(subNonce[4:], nonce[16:])
-
-	return chacha20poly1305.Open(dst, subNonce[:], ciphertext, additionalData)
+	return chacha20poly1305.Open(dst, chachaNonce[:], ciphertext, additionalData)
 }
