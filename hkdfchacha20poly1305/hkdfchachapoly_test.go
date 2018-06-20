@@ -42,6 +42,8 @@ func TestVector(t *testing.T) {
 			continue
 		}
 		assert.Equal(t, byteArr, plaintext)
+		ciphertext := aead.Seal(nil, nonce, byteArr, byteArr)
+		assert.Equal(t, ct, ciphertext)
 	}
 }
 
