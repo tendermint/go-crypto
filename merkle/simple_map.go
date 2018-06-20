@@ -61,7 +61,7 @@ func (sm *simpleMap) KVPairs() cmn.KVPairs {
 
 //----------------------------------------
 
-// A local extension to KVPair that can be hashed.
+// KVPair is a local extension to tendermint's common.KVPair that can be hashed.
 // Key and value are length prefixed and concatenated,
 // then hashed.
 type KVPair cmn.KVPair

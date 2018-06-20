@@ -26,26 +26,20 @@ func SimpleProofsFromHashers(items []Hasher) (rootHash []byte, proofs []*SimpleP
 
 // SimpleProofsFromMap generates proofs from a map. The keys/values of the map will be used as the keys/values
 // in the underlying key-value pairs.
-// The keys are sorted before the proofs are computed.
-func SimpleProofsFromMap(m map[string]Hasher) (rootHash []byte, proofs map[string]*SimpleProof, keys []string) {
+// The keys are used in the order given by the kvs list in the argument. In other words the keys are not sorted
+// before the proofs are computed. The proofs for the keys are returned in the same order.
+func SimpleProofsFromMap(kvs []KVPair) (rootHash []byte, proofs []*SimpleProof) {
 	sm := newSimpleMap()
-	for k, v := range m {
-		sm.Set(k, v)
+	for _, kv := range kvs {
+		sm.Set(string(kv.Key), kv)
 	}
-	sm.Sort()
-	kvs := sm.kvs
+
 	kvsH := make([]Hasher, 0, len(kvs))
 	for _, kvp := range kvs {
 		kvsH = append(kvsH, KVPair(kvp))
 	}
 
-	rootHash, proofList := SimpleProofsFromHashers(kvsH)
-	proofs = make(map[string]*SimpleProof)
-	keys = make([]string, len(proofList))
-	for i, kvp := range kvs {
-		proofs[string(kvp.Key)] = proofList[i]
-		keys[i] = string(kvp.Key)
-	}
+	rootHash, proofs = SimpleProofsFromHashers(kvsH)
 	return
 }
 
