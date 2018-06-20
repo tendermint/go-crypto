@@ -24,6 +24,8 @@
 #   go-tests = true
 #   unused-packages = true
 
+ignored = ["github.com/dis2/bls12"]
+
 [[constraint]]
   name = "github.com/btcsuite/btcutil"
   branch = "master"
@@ -47,6 +49,10 @@
 [[constraint]]
   name = "github.com/tendermint/go-amino"
   version = "0.10.0-rc2"
+
+[[constraint]]
+  name = "github.com/Project-Arda/bgls"
+  version = "v0.5.1"
 
 [[constraint]]
   name = "github.com/tendermint/tmlibs"

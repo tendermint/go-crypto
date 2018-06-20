@@ -48,3 +48,25 @@ func TestPubKeyInvalidDataProperReturnsEmpty(t *testing.T) {
 	require.NotNil(t, err, "expecting a non-nil error")
 	require.Nil(t, pk, "expecting an empty public key on error")
 }
+
+func TestAuthenticationBLS381Kos(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		priv := GenPrivKeyBLS381KOS()
+		pub := priv.PubKey()
+		pubKos := pub.(PubKeyBLS381KOS)
+		require.True(t, pubKos.Authenticate(), "BLS381KOS key failed authentication")
+	}
+}
+
+func TestBLS381KOSNotEqualOther(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		privA := GenPrivKeyBLS381KOS()
+		pubA := privA.PubKey()
+		privB := GenPrivKeyEd25519()
+		pubB := privB.PubKey()
+		require.False(t, pubA.Equals(pubB), "BLS381KOS should not equal an Ed25519 key")
+		privC := GenPrivKeySecp256k1()
+		pubC := privC.PubKey()
+		require.False(t, pubA.Equals(pubC), "BLS381KOS should not equal a Secp256k1 key")
+	}
+}
