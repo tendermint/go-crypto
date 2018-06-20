@@ -49,7 +49,7 @@ func TestSignAndValidateSecp256k1(t *testing.T) {
 func TestSignatureSerializationBLS381KOS(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		priv := GenPrivKeyBLS381KOS()
-		pub, _ := priv.PubKey()
+		pub := priv.PubKey()
 		pubKos := pub.(PubKeyBLS381KOS)
 		msg := CRandBytes(128)
 		sig, _ := priv.Sign(msg)
@@ -64,7 +64,7 @@ func TestSignatureSerializationBLS381KOS(t *testing.T) {
 func TestSignAndValidateBLS381KOS(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		priv := GenPrivKeyBLS381KOS()
-		pub, _ := priv.PubKey()
+		pub := priv.PubKey()
 		pubKos := pub.(PubKeyBLS381KOS)
 		msg := CRandBytes(128)
 		sig, _ := priv.Sign(msg)
@@ -83,7 +83,7 @@ func TestSignAndValidateMultiSignatureBLS381KOS(t *testing.T) {
 		msg := CRandBytes(128)
 		for j := 0; j < NUMSIGNERS; j++ {
 			privs[j] = GenPrivKeyBLS381KOS()
-			pubs[j], _ = privs[j].PubKey()
+			pubs[j] = privs[j].PubKey()
 			sig, _ := privs[j].Sign(msg)
 			sigs[j] = sig.(AggregatableSignature)
 			multi[j] = 1
@@ -108,7 +108,7 @@ func TestSignAndValidateMultiplicitySignatureBLS381KOS(t *testing.T) {
 		for j := 0; j < NUMSIGNERS; j++ {
 			x := rand.Int63()
 			privs[j] = GenPrivKeyBLS381KOS()
-			pubs[j], _ = privs[j].PubKey()
+			pubs[j] = privs[j].PubKey()
 			sig, _ := privs[j].Sign(msg)
 			siga := sig.(AggregatableSignature)
 			scaled, ok := siga.Scale(x)

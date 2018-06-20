@@ -46,8 +46,8 @@
     "crypto/bn256/cloudflare",
     "crypto/sha3"
   ]
-  revision = "eae63c511ceafab14b92e274c1b18bf1700e2d3d"
-  version = "v1.8.10"
+  revision = "dea1ce052a10cd7d401a5c04f83f371a06fe293c"
+  version = "v1.8.11"
 
 [[projects]]
   name = "github.com/go-kit/kit"
@@ -158,8 +158,8 @@
 [[projects]]
   name = "github.com/tendermint/go-amino"
   packages = ["."]
-  revision = "1715b7b78c65d6adcc5937315be4710234cefe09"
-  version = "0.10.0-rc2"
+  revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
+  version = "0.10.1"
 
 [[projects]]
   name = "github.com/tendermint/tmlibs"
@@ -176,7 +176,7 @@
   branch = "master"
   name = "github.com/tyler-smith/go-bip39"
   packages = ["."]
-  revision = "8e7a99b3e716f36d3b080a9a70f9eb45abe4edcc"
+  revision = "52158e4697b87de16ed390e1bdaf813e581008fa"
 
 [[projects]]
   name = "github.com/zondax/ledger-goclient"
@@ -192,6 +192,7 @@
     "blowfish",
     "chacha20poly1305",
     "internal/chacha20",
+    "internal/subtle",
     "nacl/secretbox",
     "openpgp/armor",
     "openpgp/errors",
@@ -201,25 +202,17 @@
     "salsa20/salsa",
     "sha3"
   ]
-  revision = "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9"
+  revision = "7f39a6fea4fe9364fb61e1def6a268a51b4f3a06"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["cpu"]
-<<<<<<< 1a2f468695f9a57907cda7f018855ea7cc912175
-  revision = "a9e25c09b96b8870693763211309e213c6ef299d"
-=======
-  revision = "bff228c7b664c5fce602223a05fb708fd8654986"
->>>>>>> Working BLS signatures
+  revision = "fc8bd948cf46f9c7af0f07d34151ce25fe90e477"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-<<<<<<< 1a2f468695f9a57907cda7f018855ea7cc912175
-  inputs-digest = "1731880d432026bbd22865582cf7c7dd6d5c65618149de586e30ce156d338c01"
-=======
   inputs-digest = "e1fe9a7570548637431db6a66e869d46615bb59005d2e88bf492f1ece449430f"
->>>>>>> Working BLS signatures
   solver-name = "gps-cdcl"
   solver-version = 1

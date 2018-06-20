@@ -190,7 +190,7 @@ func (privKey PrivKeyBLS381KOS) Sign(msg []byte) (Signature, error) {
 }
 
 // PubKey generates an authenticated public key, including proof of knowledge of secret
-func (privKey PrivKeyBLS381KOS) PubKey() (PubKey, error) {
+func (privKey PrivKeyBLS381KOS) PubKey() PubKey {
 	sk := new(big.Int)
 	sk.SetBytes(privKey[:])
 	pub := bgls.LoadPublicKey(curves.Bls12, sk)
@@ -198,7 +198,7 @@ func (privKey PrivKeyBLS381KOS) PubKey() (PubKey, error) {
 	var pbz [144]byte
 	copy(pbz[:48], auth.Marshal())
 	copy(pbz[48:], pub.Marshal())
-	return PubKeyBLS381KOS(pbz), nil
+	return PubKeyBLS381KOS(pbz)
 }
 
 // Equals checks equality of secret key
