@@ -1,9 +1,8 @@
-package hkdfchacha20poly1305
-
-// This package creates an AEAD using hkdf, chacha20, and poly1305
+// Package hkdfchacha20poly1305 creates an AEAD using hkdf, chacha20, and poly1305
 // When sealing and opening, the hkdf is used to obtain the nonce and subkey for
 // chacha20. Other than the change for the how the subkey and nonce for chacha
 // are obtained, this is the same as chacha20poly1305
+package hkdfchacha20poly1305
 
 import (
 	"crypto/cipher"
@@ -64,12 +63,12 @@ func (c *hkdfchacha20poly1305) Seal(dst, nonce, plaintext, additionalData []byte
 
 	subKey, chachaNonce := getSubkeyAndChachaNonceFromHkdf(&c.key, &nonce)
 
-	chacha20poly1305, err := chacha20poly1305.New(subKey[:])
+	aead, err := chacha20poly1305.New(subKey[:])
 	if err != nil {
 		panic("hkdfchacha20poly1305: failed to initialize chacha20poly1305")
 	}
 
-	return chacha20poly1305.Seal(dst, chachaNonce[:], plaintext, additionalData)
+	return aead.Seal(dst, chachaNonce[:], plaintext, additionalData)
 }
 
 func (c *hkdfchacha20poly1305) Open(dst, nonce, ciphertext, additionalData []byte) ([]byte, error) {
@@ -82,12 +81,12 @@ func (c *hkdfchacha20poly1305) Open(dst, nonce, ciphertext, additionalData []byt
 
 	subKey, chachaNonce := getSubkeyAndChachaNonceFromHkdf(&c.key, &nonce)
 
-	chacha20poly1305, err := chacha20poly1305.New(subKey[:])
+	aead, err := chacha20poly1305.New(subKey[:])
 	if err != nil {
 		panic("hkdfchacha20poly1305: failed to initialize chacha20poly1305")
 	}
 
-	return chacha20poly1305.Open(dst, chachaNonce[:], ciphertext, additionalData)
+	return aead.Open(dst, chachaNonce[:], ciphertext, additionalData)
 }
 
 func getSubkeyAndChachaNonceFromHkdf(cKey *[32]byte, nonce *[]byte) (

@@ -32,16 +32,16 @@ func TestVector(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		ct, _ := hex.DecodeString(cts[i])
 
-		byte_arr := []byte{byte(i)}
+		byteArr := []byte{byte(i)}
 		nonce := make([]byte, 24, 24)
-		nonce[0] = byte_arr[0]
+		nonce[0] = byteArr[0]
 
-		plaintext, err := aead.Open(nil, nonce, ct, byte_arr)
+		plaintext, err := aead.Open(nil, nonce, ct, byteArr)
 		if err != nil {
 			t.Errorf("%dth Open failed", i)
 			continue
 		}
-		assert.Equal(t, byte_arr, plaintext)
+		assert.Equal(t, byteArr, plaintext)
 	}
 }
 
