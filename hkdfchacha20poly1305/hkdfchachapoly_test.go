@@ -35,13 +35,14 @@ func TestVector(t *testing.T) {
 		byteArr := []byte{byte(i)}
 		nonce := make([]byte, 24, 24)
 		nonce[0] = byteArr[0]
-
 		plaintext, err := aead.Open(nil, nonce, ct, byteArr)
 		if err != nil {
 			t.Errorf("%dth Open failed", i)
 			continue
 		}
 		assert.Equal(t, byteArr, plaintext)
+		ciphertext := aead.Seal(nil, nonce, plaintext, byteArr)
+		assert.Equal(t, ct, ciphertext)
 	}
 }
 
