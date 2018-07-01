@@ -8,7 +8,18 @@ BREAKING CHANGES
 
 ## 0.8.0
 
-**TBD**
+BREAKING CHANGES
+
+- ed25519 addresses use 20-byte truncated sha256 instead of ripemd160 (#112)
+- `SignatureKey` -> `Signature` in Amino name (#110)
+- Return error on `privkey.Sign()` and `privkey.Pubkey()` (#117)
+- [merkle] Unexpose KVPair 
+- [merkle] SimpleProofsFromMap returns ordered keys (#115)
+- [merkle] Don't hash the key in SimpleHashFromMap
+
+FEATURE
+
+- rework API to work with local and external keys (offline, HW wallets, and Ledger) (#117)    
 
 ## 0.7.0
 
