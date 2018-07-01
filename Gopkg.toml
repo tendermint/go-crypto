@@ -29,14 +29,6 @@
   branch = "master"
 
 [[constraint]]
-  name = "github.com/howeyc/crc16"
-  branch = "master"
-
-[[constraint]]
-  name = "github.com/pkg/errors"
-  version = "0.8.0"
-
-[[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.2.1"
 
@@ -51,14 +43,6 @@
 [[constraint]]
   name = "github.com/tendermint/tmlibs"
   version = "0.8.1"
-
-[[constraint]]
-  name = "github.com/tyler-smith/go-bip39"
-  branch = "master"
-
-[[constraint]]
-  name = "github.com/zondax/ledger-goclient"
-  revision = "3e2146609cdb97894c064d59e9d00accd8c2b1dd"
 
 [prune]
   go-tests = true
