@@ -1,5 +1,18 @@
 # Changelog
 
+NOTE: This library is moving to github.com/tendermint/go-crypto.
+
+v0.10.0 is the last release here.
+
+## 0.10.0
+
+*July 1st, 2018*
+
+BREAKING CHANGES
+
+- [keys] Delete package. Moved to github.com/cosmos/cosmos-sdk
+- [xchachapoly] Now `hkdfchachapoly`
+
 ## 0.9.0
 
 BREAKING CHANGES
